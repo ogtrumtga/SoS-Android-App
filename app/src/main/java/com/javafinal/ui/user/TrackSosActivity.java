@@ -27,7 +27,6 @@ import org.maplibre.android.geometry.LatLng;
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 
-import java.util.List;
 import java.util.Locale;
 
 public class TrackSosActivity extends AppCompatActivity {
@@ -40,19 +39,13 @@ public class TrackSosActivity extends AppCompatActivity {
     private LinearProgressIndicator progressRescue;
     private TextView tvTeamName;
     private TextView tvTeamStatus;
-    private TextView tvEta;
-    private MaterialButton btnSimulateWsEvent;
     private MaterialButton btnCallTeam;
 
     private TextView tvCoordinates;
-    private TextView tvAccuracy;
     private TextView tvEmergencyTypeBadge;
     private TextView tvSituation;
-    private TextView tvPeople;
     private TextView tvAddress;
-    private TextView tvNeeds;
-    private TextView tvVisibilityTitle;
-    private TextView tvVisibilitySub;
+    private MaterialButton btnChangeMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,30 +68,22 @@ public class TrackSosActivity extends AppCompatActivity {
         }
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(currentSos.getShortId());
+        toolbar.setTitle("SOS " + currentSos.getShortId());
         toolbar.setNavigationOnClickListener(v -> finish());
 
         tvStep = findViewById(R.id.tvStep);
         progressRescue = findViewById(R.id.progressRescue);
         tvTeamName = findViewById(R.id.tvTeamName);
         tvTeamStatus = findViewById(R.id.tvTeamStatus);
-        tvEta = findViewById(R.id.tvEta);
-        btnSimulateWsEvent = findViewById(R.id.btnSimulateWsEvent);
 
         tvCoordinates = findViewById(R.id.tvCoordinates);
-        tvAccuracy = findViewById(R.id.tvAccuracy);
         MaterialButton btnCenterMap = findViewById(R.id.btnCenterMap);
         btnCallTeam = findViewById(R.id.btnCallTeam);
 
         tvEmergencyTypeBadge = findViewById(R.id.tvEmergencyTypeBadge);
         tvSituation = findViewById(R.id.tvSituation);
-        tvPeople = findViewById(R.id.tvPeople);
         tvAddress = findViewById(R.id.tvAddress);
-        tvNeeds = findViewById(R.id.tvNeeds);
-
-        tvVisibilityTitle = findViewById(R.id.tvVisibilityTitle);
-        tvVisibilitySub = findViewById(R.id.tvVisibilitySub);
-        MaterialButton btnChangeMode = findViewById(R.id.btnChangeMode);
+        btnChangeMode = findViewById(R.id.btnChangeMode);
         MaterialButton btnCancelSos = findViewById(R.id.btnCancelSos);
 
         mapView = findViewById(R.id.mapView);
@@ -112,8 +97,6 @@ public class TrackSosActivity extends AppCompatActivity {
             MapHelper.applyDefaultStyle(map, style -> renderMapState());
         });
 
-        btnSimulateWsEvent.setOnClickListener(v -> simulateNextStateMachineStep());
-
         btnCenterMap.setOnClickListener(v -> renderMapState());
 
         btnCallTeam.setOnClickListener(v -> {
@@ -124,24 +107,20 @@ public class TrackSosActivity extends AppCompatActivity {
             }
         });
 
-        // Đổi chế độ hiển thị
         btnChangeMode.setOnClickListener(v -> {
             boolean isPublic = SosRequest.VISIBILITY_PUBLIC.equals(currentSos.getVisibility());
             String nextVis = isPublic ? SosRequest.VISIBILITY_PRIVATE : SosRequest.VISIBILITY_PUBLIC;
             currentSos.setVisibility(nextVis);
-            currentSos.addLog("Đã chuyển chế độ hiển thị sang " + currentSos.getVisibilityLabel());
             bindSosStateToUi();
-            NavigationHelper.showSnack(this, "Đã chuyển chế độ hiển thị sang " + currentSos.getVisibilityLabel());
+            NavigationHelper.showSnack(this, "Chế độ: " + currentSos.getVisibilityLabel());
         });
 
-        // Nạn nhân hủy SOS
         btnCancelSos.setOnClickListener(v -> {
             NavigationHelper.showConfirmSheet(
                     this,
-                    "HỦY YÊU CẦU",
-                    "Xác nhận hủy yêu cầu SOS?",
-                    "Bạn xác nhận đã an toàn hoặc muốn hủy yêu cầu cứu hộ này?\n\n"
-                            + "Hệ thống sẽ đóng phiên cứu hộ và ngừng chia sẻ vị trí trực tiếp của bạn.",
+                    null,
+                    "Hủy yêu cầu SOS?",
+                    "Bạn xác nhận đã an toàn và muốn hủy yêu cầu cứu hộ này?",
                     "Xác nhận hủy",
                     true,
                     () -> {
@@ -156,92 +135,40 @@ public class TrackSosActivity extends AppCompatActivity {
         });
     }
 
-    private void simulateNextStateMachineStep() {
-        MockDataRepository repo = MockDataRepository.getInstance();
-        String status = currentSos.getStatus();
-
-        if (SosRequest.STATUS_WAITING.equals(status)) {
-            repo.acceptSosMission(currentSos);
-            NavigationHelper.showSnack(this, "Đội cứu hộ đã tiếp nhận yêu cầu");
-        } else if (SosRequest.STATUS_ACCEPTED.equals(status)) {
-            repo.updateMissionStatus(currentSos, SosRequest.STATUS_RESCUING);
-            currentSos.setRescuerLat((currentSos.getRescuerLat() + currentSos.getVictimLat()) / 2.0);
-            currentSos.setRescuerLng((currentSos.getRescuerLng() + currentSos.getVictimLng()) / 2.0);
-            NavigationHelper.showSnack(this, "Đội cứu hộ đang di chuyển tới bạn");
-        } else if (SosRequest.STATUS_RESCUING.equals(status)) {
-            repo.updateMissionStatus(currentSos, SosRequest.STATUS_ARRIVED);
-            currentSos.setRescuerLat(currentSos.getVictimLat() - 0.0003);
-            currentSos.setRescuerLng(currentSos.getVictimLng() - 0.0003);
-            NavigationHelper.showSnack(this, "Đội cứu hộ đã tới hiện trường");
-        } else {
-            repo.completeMission(currentSos);
-            startActivity(new Intent(TrackSosActivity.this, SosResultActivity.class));
-            finish();
-            return;
-        }
-
-        bindSosStateToUi();
-        renderMapState();
-    }
-
     private void bindSosStateToUi() {
         String status = currentSos.getStatus();
         tvStep.setText(currentSos.getStatusLabel());
 
         if (SosRequest.STATUS_WAITING.equals(status)) {
             progressRescue.setProgressCompat(1, true);
-            tvTeamName.setText("Đang kết nối với đội cứu hộ...");
-            tvTeamStatus.setText("Hệ thống đang thông báo cho các đội cứu hộ gần bạn");
-            tvEta.setText("Đang chờ");
-            btnSimulateWsEvent.setText("Chuyển bước tiếp: Đội cứu hộ nhận ca");
+            tvTeamName.setText("Đang tìm đội cứu hộ...");
+            tvTeamStatus.setText("Đã gửi tín hiệu tới các đội gần bạn");
             btnCallTeam.setEnabled(false);
         } else if (SosRequest.STATUS_ACCEPTED.equals(status)) {
             progressRescue.setProgressCompat(2, true);
             tvTeamName.setText(currentSos.getTeamName());
-            tvTeamStatus.setText("Phụ trách: " + currentSos.getRescuerName() + " • " + currentSos.getRescuerPhone());
-            tvEta.setText("Đã tiếp nhận");
-            btnSimulateWsEvent.setText("Chuyển bước tiếp: Đội bắt đầu di chuyển");
+            tvTeamStatus.setText(currentSos.getRescuerName() + " • " + currentSos.getRescuerPhone());
             btnCallTeam.setEnabled(true);
         } else if (SosRequest.STATUS_RESCUING.equals(status)) {
             progressRescue.setProgressCompat(3, true);
             tvTeamName.setText(currentSos.getTeamName());
             double dist = currentSos.getDistanceKmFrom(currentSos.getRescuerLat(), currentSos.getRescuerLng());
-            tvTeamStatus.setText("Đang di chuyển (Cách ~" + dist + " km) • " + currentSos.getRescuerPhone());
-            tvEta.setText("Đang đến");
-            btnSimulateWsEvent.setText("Chuyển bước tiếp: Đội tới nơi");
+            tvTeamStatus.setText("Cách ~" + dist + " km • " + currentSos.getRescuerPhone());
             btnCallTeam.setEnabled(true);
         } else {
             progressRescue.setProgressCompat(4, true);
             tvTeamName.setText(currentSos.getTeamName());
-            tvTeamStatus.setText("Đã tới hiện trường (" + currentSos.getRescuerName() + ")");
-            tvEta.setText("Đã tới nơi");
-            btnSimulateWsEvent.setText("Chuyển bước tiếp: Hoàn thành ca cứu hộ");
+            tvTeamStatus.setText("Đã tới nơi • " + currentSos.getRescuerName());
             btnCallTeam.setEnabled(true);
         }
 
-        tvCoordinates.setText(String.format(Locale.US, "Vị trí của bạn: %.6f, %.6f",
-                currentSos.getVictimLat(), currentSos.getVictimLng()));
-        tvAccuracy.setText(String.format(Locale.US, "Độ chính xác GPS: ±%.1fm",
-                currentSos.getVictimAccuracyM()));
+        tvCoordinates.setText(String.format(Locale.US, "%.5f, %.5f (±%.1fm)",
+                currentSos.getVictimLat(), currentSos.getVictimLng(), currentSos.getVictimAccuracyM()));
 
         tvEmergencyTypeBadge.setText(currentSos.getEmergencyTypeLabel());
         tvSituation.setText(currentSos.getDescription());
-        tvPeople.setText("Người gửi: " + currentSos.getRequesterName() + " • " + currentSos.getRequesterPhone());
-        tvAddress.setText("Thời gian gửi: " + currentSos.getCreatedAt() + " • Mã: " + currentSos.getShortId());
-
-        List<String> logs = currentSos.getLogs();
-        StringBuilder logBuilder = new StringBuilder("Nhật ký hoạt động:\n");
-        for (int i = 0; i < logs.size(); i++) {
-            logBuilder.append("• ").append(logs.get(i));
-            if (i < logs.size() - 1) logBuilder.append("\n");
-        }
-        tvNeeds.setText(logBuilder.toString());
-
-        boolean isPublic = SosRequest.VISIBILITY_PUBLIC.equals(currentSos.getVisibility());
-        tvVisibilityTitle.setText("Chế độ hiển thị: " + currentSos.getVisibilityLabel());
-        tvVisibilitySub.setText(isPublic
-                ? "Hiển thị vùng cảnh báo (~1km) trên bản đồ cộng đồng"
-                : "Chế độ riêng tư: Ẩn khỏi bản đồ cộng đồng, chỉ đội cứu hộ thấy");
+        tvAddress.setText(currentSos.getCreatedAt());
+        btnChangeMode.setText(currentSos.getVisibilityLabel());
     }
 
     private void renderMapState() {
@@ -252,20 +179,20 @@ public class TrackSosActivity extends AppCompatActivity {
             Icon victimIcon = MapHelper.createPinIcon(this, Color.parseColor("#E5383B"), "SOS");
             mapLibreMap.addMarker(new MarkerOptions()
                     .position(new LatLng(currentSos.getVictimLat(), currentSos.getVictimLng()))
-                    .title("Vị trí của bạn (" + currentSos.getShortId() + ")")
-                    .snippet(currentSos.getDescription())
+                    .title("Vị trí của bạn")
                     .icon(victimIcon));
             MapHelper.moveCamera(mapLibreMap, currentSos.getVictimLat(), currentSos.getVictimLng(), 15.2);
         } else {
+            MockDataRepository repo = MockDataRepository.getInstance();
             MapHelper.drawRescueRoute(
                     this,
                     mapLibreMap,
-                    currentSos.getRescuerLat(),
-                    currentSos.getRescuerLng(),
-                    currentSos.getVictimLat(),
-                    currentSos.getVictimLng(),
-                    "Đội cứu hộ: " + currentSos.getTeamName(),
-                    "Người gửi: " + currentSos.getRequesterName()
+                    currentSos,
+                    repo.getRescuerBaseLat(),
+                    repo.getRescuerBaseLng(),
+                    currentSos.getTeamName(),
+                    currentSos.getRequesterName(),
+                    this::bindSosStateToUi
             );
         }
     }

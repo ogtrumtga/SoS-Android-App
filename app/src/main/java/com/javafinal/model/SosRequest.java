@@ -68,6 +68,11 @@ public class SosRequest implements Serializable {
     // Nhật ký kiểm toán sos_logs (GET /api/sos/{id}/logs)
     private final List<String> logs = new ArrayList<>();
 
+    // Lộ trình đường đi thực tế trên bản đồ (danh sách các điểm [lat, lng] theo đường giao thông)
+    private final List<double[]> routePoints = new ArrayList<>();
+    private int routeStepIndex = 0;
+    private boolean osrmLoaded = false;
+
     public SosRequest(
             String id,
             String requesterId,
@@ -124,6 +129,99 @@ public class SosRequest implements Serializable {
         this.rescuerName = null;
         this.rescuerPhone = null;
         this.teamName = null;
+        this.routeStepIndex = 0;
+    }
+
+    public synchronized void setRoutePoints(List<double[]> points, boolean fromOsrm) {
+        double progressRatio = 0;
+        if (this.routePoints.size() > 1 && this.routeStepIndex > 0) {
+            progressRatio = (double) this.routeStepIndex / (this.routePoints.size() - 1);
+        }
+        this.routePoints.clear();
+        if (points != null) {
+            this.routePoints.addAll(points);
+        }
+        this.osrmLoaded = fromOsrm;
+        if (!this.routePoints.isEmpty()) {
+            if (STATUS_ARRIVED.equals(this.status)) {
+                this.routeStepIndex = Math.max(0, this.routePoints.size() - 2);
+            } else if (progressRatio > 0) {
+                this.routeStepIndex = Math.min(
+                        Math.max(0, this.routePoints.size() - 2),
+                        (int) Math.round(progressRatio * (this.routePoints.size() - 1))
+                );
+            } else {
+                this.routeStepIndex = 0;
+            }
+            double[] cur = this.routePoints.get(this.routeStepIndex);
+            this.rescuerLat = cur[0];
+            this.rescuerLng = cur[1];
+        }
+    }
+
+    public synchronized List<double[]> getRoutePoints() {
+        return new ArrayList<>(routePoints);
+    }
+
+    public synchronized List<double[]> getRemainingRoutePoints() {
+        if (routePoints.isEmpty()) return new ArrayList<>();
+        int start = Math.max(0, Math.min(routeStepIndex, routePoints.size() - 1));
+        return new ArrayList<>(routePoints.subList(start, routePoints.size()));
+    }
+
+    public synchronized boolean advanceAlongRoute() {
+        if (routePoints.size() <= 2) return false;
+        int step = Math.max(1, routePoints.size() / 5);
+        int nextIndex = Math.min(routePoints.size() - 2, routeStepIndex + step);
+        if (nextIndex > routeStepIndex) {
+            routeStepIndex = nextIndex;
+            double[] pt = routePoints.get(routeStepIndex);
+            this.rescuerLat = pt[0];
+            this.rescuerLng = pt[1];
+            return true;
+        }
+        return false;
+    }
+
+    public synchronized void snapRescuerToDestination() {
+        if (!routePoints.isEmpty()) {
+            routeStepIndex = Math.max(0, routePoints.size() - 2);
+            double[] pt = routePoints.get(routeStepIndex);
+            this.rescuerLat = pt[0];
+            this.rescuerLng = pt[1];
+        } else {
+            this.rescuerLat = this.victimLat;
+            this.rescuerLng = this.victimLng;
+        }
+    }
+
+    public synchronized boolean isOsrmLoaded() {
+        return osrmLoaded;
+    }
+
+    public synchronized double getRemainingRouteDistanceKm() {
+        List<double[]> rem = getRemainingRoutePoints();
+        if (rem.size() >= 2) {
+            double totalKm = 0;
+            for (int i = 0; i < rem.size() - 1; i++) {
+                totalKm += computeHaversineKm(
+                        rem.get(i)[0], rem.get(i)[1],
+                        rem.get(i + 1)[0], rem.get(i + 1)[1]
+                );
+            }
+            return Math.round(totalKm * 10.0) / 10.0;
+        }
+        return getDistanceKmFrom(rescuerLat, rescuerLng);
+    }
+
+    public static double computeHaversineKm(double lat1, double lng1, double lat2, double lng2) {
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return 6371.0 * c;
     }
 
     public void addLog(String logEntry) {
@@ -182,13 +280,21 @@ public class SosRequest implements Serializable {
     }
 
     public double getDistanceKmFrom(double lat, double lng) {
-        double dLat = Math.toRadians(victimLat - lat);
-        double dLng = Math.toRadians(victimLng - lng);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat)) * Math.cos(Math.toRadians(victimLat))
-                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return Math.round((6371.0 * c) * 10.0) / 10.0;
+        synchronized (this) {
+            if (routePoints.size() >= 2) {
+                double totalKm = 0;
+                int start = Math.max(0, Math.min(routeStepIndex, routePoints.size() - 1));
+                for (int i = start; i < routePoints.size() - 1; i++) {
+                    totalKm += computeHaversineKm(
+                            routePoints.get(i)[0], routePoints.get(i)[1],
+                            routePoints.get(i + 1)[0], routePoints.get(i + 1)[1]
+                    );
+                }
+                return Math.round(totalKm * 10.0) / 10.0;
+            }
+        }
+        double straightKm = computeHaversineKm(lat, lng, victimLat, victimLng);
+        return Math.round((straightKm * 1.3) * 10.0) / 10.0;
     }
 
     public boolean isActive() {

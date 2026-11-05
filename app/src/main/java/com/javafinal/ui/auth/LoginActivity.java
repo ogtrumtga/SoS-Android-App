@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -32,17 +33,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private LinearLayout layoutStepPhone;
     private LinearLayout layoutStepOtp;
-    private TextView tvStep;
-    private TextView tvRoleHint;
-
     private TextInputEditText edtPhone;
-    private TextInputEditText edtFullName;
-    private TextView tvTelegramBadge;
 
     private TextView tvOtpSentTo;
-    private TextView tvSelectedRoleSummary;
-    private TextView tvSelectedUserSummary;
-    private TextView tvAttemptsRemaining;
     private TextView tvCountdown;
     private MaterialButton btnResend;
     private EditText[] otpInputs;
@@ -68,27 +61,16 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         MaterialButton btnBack = findViewById(R.id.btnBack);
-        tvStep = findViewById(R.id.tvStep);
         layoutStepPhone = findViewById(R.id.layoutStepPhone);
         layoutStepOtp = findViewById(R.id.layoutStepOtp);
 
         MaterialButtonToggleGroup toggleRole = findViewById(R.id.toggleRole);
-        tvRoleHint = findViewById(R.id.tvRoleHint);
         edtPhone = findViewById(R.id.edtPhone);
-        edtFullName = findViewById(R.id.edtFullName);
-        tvTelegramBadge = findViewById(R.id.tvTelegramBadge);
-
-        MaterialButton btnOpenTelegram = findViewById(R.id.btnOpenTelegram);
-        MaterialButton btnDevLinkTelegram = findViewById(R.id.btnDevLinkTelegram);
         MaterialButton btnSendOtp = findViewById(R.id.btnSendOtp);
 
         tvOtpSentTo = findViewById(R.id.tvOtpSentTo);
-        tvSelectedRoleSummary = findViewById(R.id.tvSelectedRoleSummary);
-        tvSelectedUserSummary = findViewById(R.id.tvSelectedUserSummary);
-        tvAttemptsRemaining = findViewById(R.id.tvAttemptsRemaining);
         tvCountdown = findViewById(R.id.tvCountdown);
         btnResend = findViewById(R.id.btnResend);
-        MaterialButton btnChangePhone = findViewById(R.id.btnChangePhone);
         MaterialButton btnConfirmOtp = findViewById(R.id.btnConfirmOtp);
 
         otpInputs = new EditText[]{
@@ -101,110 +83,65 @@ public class LoginActivity extends AppCompatActivity {
         };
         setupOtpAutoAdvance();
 
-        // Chọn vai trò TRƯỚC khi đăng nhập
         toggleRole.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
             if (checkedId == R.id.btnRoleRescuer) {
                 selectedRole = MockDataRepository.ROLE_RESCUER;
                 edtPhone.setText("0901112222");
-                edtFullName.setText("Trần Cứu Hộ");
-                tvRoleHint.setText("Chế độ Đội cứu hộ: Xem danh sách yêu cầu cứu hộ, tiếp nhận ca và điều phối di chuyển.");
             } else {
                 selectedRole = MockDataRepository.ROLE_USER;
                 edtPhone.setText("0901234567");
-                edtFullName.setText("Nguyễn Văn An");
-                tvRoleHint.setText("Chế độ Người dân: Xem bản đồ cảnh báo cộng đồng và gửi tín hiệu SOS khẩn cấp.");
             }
         });
 
-        btnBack.setOnClickListener(v -> {
-            if (layoutStepOtp.getVisibility() == View.VISIBLE) {
-                showStepPhone();
-            } else {
-                NavigationHelper.showAllScreensMenu(this);
+        btnBack.setOnClickListener(v -> showStepPhone());
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (layoutStepOtp.getVisibility() == View.VISIBLE) {
+                    showStepPhone();
+                } else {
+                    finish();
+                }
             }
         });
 
-        btnOpenTelegram.setOnClickListener(v -> {
-            MockDataRepository.getInstance().setTelegramLinked(true);
-            tvTelegramBadge.setText("Đã liên kết");
-            NavigationHelper.showConfirmSheet(
-                    this,
-                    "HƯỚNG DẪN",
-                    "Liên kết Telegram",
-                    "1. Mở @SosRescueBot trên ứng dụng Telegram\n"
-                            + "2. Nhấn Bắt đầu (/start) và chọn 'Chia sẻ số điện thoại'\n"
-                            + "3. Quay lại ứng dụng để nhận mã xác thực 6 chữ số.",
-                    "Đã hiểu",
-                    false,
-                    null,
-                    null,
-                    null
-            );
-        });
-
-        btnDevLinkTelegram.setOnClickListener(v -> {
-            MockDataRepository.getInstance().setTelegramLinked(true);
-            tvTelegramBadge.setText("Đã liên kết");
-            NavigationHelper.showSnack(this, "Đã liên kết tài khoản Telegram thành công");
-        });
-
-        // Bước 1 -> Bước 2: Gửi yêu cầu OTP
         btnSendOtp.setOnClickListener(v -> {
             String phone = edtPhone.getText() != null ? edtPhone.getText().toString().trim() : "";
-            String fullName = edtFullName.getText() != null ? edtFullName.getText().toString().trim() : "";
-
             if (phone.length() < 9) {
                 NavigationHelper.showSnack(this, "Vui lòng nhập số điện thoại hợp lệ");
                 return;
             }
-            if (fullName.isEmpty()) {
-                fullName = MockDataRepository.ROLE_RESCUER.equals(selectedRole) ? "Trần Cứu Hộ" : "Nguyễn Văn An";
-                edtFullName.setText(fullName);
-            }
 
             generatedOtp = "123456";
             attemptsLeft = 5;
-            showStepOtp(phone, fullName);
-            fillMockOtp(generatedOtp);
-            startAntiSpamCountdown();
-
-            NavigationHelper.showSnack(this, "Mã xác thực OTP của bạn là: " + generatedOtp);
+            showStepOtp(phone);
+            fillOtp(generatedOtp);
+            startCountdown();
         });
-
-        btnChangePhone.setOnClickListener(v -> showStepPhone());
 
         btnResend.setOnClickListener(v -> {
             generatedOtp = "123456";
             attemptsLeft = 5;
-            tvAttemptsRemaining.setText("Mã xác thực có hiệu lực trong 5 phút • Còn 5 lần thử");
-            fillMockOtp(generatedOtp);
-            startAntiSpamCountdown();
-            NavigationHelper.showSnack(this, "Đã gửi mã OTP mới: " + generatedOtp);
+            fillOtp(generatedOtp);
+            startCountdown();
+            NavigationHelper.showSnack(this, "Đã gửi lại mã OTP");
         });
 
-        // Bước 2: Xác thực OTP & Đăng nhập thẳng vào vai trò đã chọn
         btnConfirmOtp.setOnClickListener(v -> verifyOtpAndEnterApp());
     }
 
     private void showStepPhone() {
         if (countDownTimer != null) countDownTimer.cancel();
-        tvStep.setText("Bước 1 / 2");
         layoutStepOtp.setVisibility(View.GONE);
         layoutStepPhone.setVisibility(View.VISIBLE);
     }
 
-    private void showStepOtp(String phone, String fullName) {
-        tvStep.setText("Bước 2 / 2");
+    private void showStepOtp(String phone) {
         layoutStepPhone.setVisibility(View.GONE);
         layoutStepOtp.setVisibility(View.VISIBLE);
-
-        tvOtpSentTo.setText("Mã OTP 6 chữ số đã được gửi tới Telegram của " + phone + " (hiệu lực 5 phút).");
-        tvSelectedRoleSummary.setText(MockDataRepository.ROLE_RESCUER.equals(selectedRole)
-                ? "Đội cứu hộ"
-                : "Người dân");
-        tvSelectedUserSummary.setText(fullName + " • " + phone);
-        tvAttemptsRemaining.setText("Mã xác thực có hiệu lực trong 5 phút • Còn 5 lần thử");
+        tvOtpSentTo.setText("Mã 6 số đã gửi tới " + phone);
     }
 
     private void verifyOtpAndEnterApp() {
@@ -222,20 +159,18 @@ public class LoginActivity extends AppCompatActivity {
         if (!generatedOtp.equals(enteredOtp)) {
             attemptsLeft--;
             if (attemptsLeft <= 0) {
-                tvAttemptsRemaining.setText("Đã nhập sai quá 5 lần. Vui lòng yêu cầu gửi lại mã mới.");
-                NavigationHelper.showSnack(this, "Mã OTP đã hết lượt thử, vui lòng gửi lại mã mới");
+                NavigationHelper.showSnack(this, "Đã quá số lần thử, vui lòng gửi lại mã");
                 return;
             }
-            tvAttemptsRemaining.setText("Mã OTP chưa chính xác • Còn " + attemptsLeft + " lần thử");
-            NavigationHelper.showSnack(this, "Mã OTP chưa chính xác");
+            NavigationHelper.showSnack(this, "Mã OTP không đúng (còn " + attemptsLeft + " lần thử)");
             return;
         }
 
-        String phone = edtPhone.getText() != null ? edtPhone.getText().toString().trim() : "0901234567";
-        String fullName = edtFullName.getText() != null ? edtFullName.getText().toString().trim() : "Nguyễn Văn An";
+        String phone = edtPhone.getText() != null ? edtPhone.getText().toString().trim() : "";
+        String defaultName = MockDataRepository.ROLE_RESCUER.equals(selectedRole) ? "Trần Cứu Hộ" : "Nguyễn Văn An";
 
         MockDataRepository repo = MockDataRepository.getInstance();
-        repo.loginAsRole(selectedRole, phone, fullName);
+        repo.loginAsRole(selectedRole, phone, defaultName);
 
         if (MockDataRepository.ROLE_RESCUER.equals(selectedRole)) {
             startActivity(new Intent(LoginActivity.this, RescuerHomeActivity.class));
@@ -279,13 +214,13 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void fillMockOtp(String code) {
+    private void fillOtp(String code) {
         for (int i = 0; i < otpInputs.length && i < code.length(); i++) {
             otpInputs[i].setText(String.valueOf(code.charAt(i)));
         }
     }
 
-    private void startAntiSpamCountdown() {
+    private void startCountdown() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
@@ -295,12 +230,12 @@ public class LoginActivity extends AppCompatActivity {
             public void onTick(long millisUntilFinished) {
                 long sec = millisUntilFinished / 1000;
                 tvCountdown.setText(String.format(Locale.getDefault(),
-                        "Gửi lại mã sau %02d giây", sec));
+                        "Gửi lại sau %02ds", sec));
             }
 
             @Override
             public void onFinish() {
-                tvCountdown.setText("Có thể yêu cầu mã OTP mới");
+                tvCountdown.setText("Có thể gửi lại mã");
                 btnResend.setEnabled(true);
             }
         }.start();

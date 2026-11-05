@@ -214,7 +214,9 @@
         <item name="chipStrokeWidth">1dp</item>
         <item name="checkedIconVisible">false</item>
         <item name="chipIconVisible">false</item>
-        <item name="chipMinHeight">36dp</item>
+        <item name="chipMinHeight">34dp</item>
+        <item name="android:minHeight">34dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
         <item name="android:textSize">13sp</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
     </style>
@@ -225,7 +227,9 @@
         <item name="android:textColor">@color/ink_secondary</item>
         <item name="chipStrokeWidth">0dp</item>
         <item name="chipMinHeight">32dp</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:minHeight">32dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+        <item name="android:textSize">12.5sp</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
     </style>
 

@@ -3,6 +3,7 @@ package com.javafinal.ui.rescuer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -26,9 +27,8 @@ import java.util.List;
 public class RescuerHomeActivity extends AppCompatActivity {
 
     private SosRequestAdapter adapter;
-    private TextView tvTeamHeader;
+    private LinearLayout layoutActiveMission;
     private TextView tvActiveMissionTitle;
-    private TextView tvActiveMissionSub;
     private MaterialButton btnOpenActiveMission;
 
     private TextView tvWaitingCount;
@@ -52,9 +52,8 @@ public class RescuerHomeActivity extends AppCompatActivity {
         MockDataRepository repo = MockDataRepository.getInstance();
         repo.setCurrentRole(MockDataRepository.ROLE_RESCUER);
 
-        tvTeamHeader = findViewById(R.id.tvTeamHeader);
+        layoutActiveMission = findViewById(R.id.layoutActiveMission);
         tvActiveMissionTitle = findViewById(R.id.tvActiveMissionTitle);
-        tvActiveMissionSub = findViewById(R.id.tvActiveMissionSub);
         btnOpenActiveMission = findViewById(R.id.btnOpenActiveMission);
 
         MaterialButton btnEmergencyAlert = findViewById(R.id.btnEmergencyAlert);
@@ -122,15 +121,14 @@ public class RescuerHomeActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_rescuer_requests) {
                 return true;
-            } else if (itemId == R.id.nav_rescuer_map) {
-                startActivity(new Intent(RescuerHomeActivity.this, RealtimeTrackingActivity.class));
-                return false;
-            } else if (itemId == R.id.nav_rescuer_missions) {
+            } else if (itemId == R.id.nav_rescuer_map || itemId == R.id.nav_rescuer_missions) {
                 SosRequest active = repo.getMyActiveRescuerMission();
                 if (active != null) {
-                    startActivity(new Intent(RescuerHomeActivity.this, RealtimeTrackingActivity.class));
+                    Intent intent = new Intent(RescuerHomeActivity.this, RealtimeTrackingActivity.class);
+                    intent.putExtra("SOS_ID", active.getId());
+                    startActivity(intent);
                 } else {
-                    NavigationHelper.showSnack(this, "Đội hiện chưa có ca nào đang xử lý");
+                    NavigationHelper.showSnack(this, "Chưa có ca cứu hộ nào đang xử lý");
                 }
                 return false;
             } else if (itemId == R.id.nav_rescuer_team) {
@@ -147,15 +145,12 @@ public class RescuerHomeActivity extends AppCompatActivity {
         MockDataRepository repo = MockDataRepository.getInstance();
         SosRequest busyMission = repo.getMyActiveRescuerMission();
 
-        // Kiểm tra mỗi đội chỉ được nhận 1 ca tại một thời điểm
         if (busyMission != null && !busyMission.getId().equals(request.getId())) {
             NavigationHelper.showConfirmSheet(
                     this,
-                    "ĐANG CÓ CA CỨU HỘ",
-                    "Đội đang xử lý một ca khác",
-                    "Bạn đang phụ trách ca cứu hộ " + busyMission.getShortId()
-                            + " (" + busyMission.getStatusLabel() + ").\n\n"
-                            + "Vui lòng hoàn thành ca hiện tại trước khi tiếp nhận ca mới.",
+                    null,
+                    "Đội đang xử lý ca khác",
+                    busyMission.getEmergencyTypeLabel() + " • " + busyMission.getStatusLabel(),
                     "Mở ca hiện tại",
                     false,
                     () -> {
@@ -178,17 +173,13 @@ public class RescuerHomeActivity extends AppCompatActivity {
 
     private void refreshQueueAndStats() {
         MockDataRepository repo = MockDataRepository.getInstance();
-        tvTeamHeader.setText(repo.getRescuerTeamName() + " • " + repo.getRescuerFullName());
 
         SosRequest active = repo.getMyActiveRescuerMission();
         if (active != null) {
-            tvActiveMissionTitle.setText("● Đang xử lý: " + active.getShortId() + " (" + active.getStatusLabel() + ")");
-            tvActiveMissionSub.setText(active.getRequesterName() + " • " + active.getEmergencyTypeLabel());
-            btnOpenActiveMission.setVisibility(View.VISIBLE);
+            layoutActiveMission.setVisibility(View.VISIBLE);
+            tvActiveMissionTitle.setText("● " + active.getEmergencyTypeLabel() + " • " + active.getStatusLabel());
         } else {
-            tvActiveMissionTitle.setText("Ca cứu hộ hiện tại");
-            tvActiveMissionSub.setText("Đang sẵn sàng nhận nhiệm vụ mới");
-            btnOpenActiveMission.setVisibility(View.GONE);
+            layoutActiveMission.setVisibility(View.GONE);
         }
 
         List<SosRequest> filtered = repo.getRescueQueue(currentFilter);

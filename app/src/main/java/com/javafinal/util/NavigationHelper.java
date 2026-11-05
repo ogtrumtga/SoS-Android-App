@@ -27,15 +27,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.javafinal.R;
 import com.javafinal.data.MockDataRepository;
 import com.javafinal.ui.auth.LoginActivity;
-import com.javafinal.ui.rescuer.ConfirmCompleteActivity;
-import com.javafinal.ui.rescuer.RealtimeTrackingActivity;
-import com.javafinal.ui.rescuer.RescuerHomeActivity;
-import com.javafinal.ui.rescuer.SosDetailActivity;
-import com.javafinal.ui.splash.SplashActivity;
-import com.javafinal.ui.user.HomeActivity;
-import com.javafinal.ui.user.SendSosActivity;
-import com.javafinal.ui.user.SosResultActivity;
-import com.javafinal.ui.user.TrackSosActivity;
 
 import java.util.List;
 
@@ -222,7 +213,7 @@ public class NavigationHelper {
     }
 
     /**
-     * Hộp thoại Hồ sơ người dùng chuẩn API #03 (/api/auth/me), #05 (GET /api/users/profile), #06 (PUT /api/users/profile)
+     * Hộp thoại Hồ sơ người dùng
      */
     public static void showProfileDialog(Activity activity, Runnable onProfileUpdated) {
         if (activity == null || activity.isFinishing()) return;
@@ -231,9 +222,9 @@ public class NavigationHelper {
 
         LinearLayout root = createSheetRoot(
                 activity,
-                "TÀI KHOẢN",
+                null,
                 repo.getCurrentFullName(),
-                "Thông tin tài khoản đang đăng nhập."
+                null
         );
 
         LinearLayout infoBox = new LinearLayout(activity);
@@ -242,34 +233,26 @@ public class NavigationHelper {
         infoBox.setPadding(dp(activity, 16), dp(activity, 8), dp(activity, 16), dp(activity, 8));
         LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        boxLp.topMargin = dp(activity, 16);
+        boxLp.topMargin = dp(activity, 14);
         boxLp.bottomMargin = dp(activity, 8);
         infoBox.setLayoutParams(boxLp);
 
         addKeyValueRow(activity, infoBox, "Số điện thoại", repo.getCurrentPhone());
         addKeyValueRow(activity, infoBox, "Vai trò",
                 MockDataRepository.ROLE_RESCUER.equals(repo.getCurrentRole()) ? "Đội cứu hộ" : "Người dân");
-        addKeyValueRow(activity, infoBox, "Trạng thái", "Đang hoạt động");
         if (MockDataRepository.ROLE_RESCUER.equals(repo.getCurrentRole())) {
             addKeyValueRow(activity, infoBox, "Đơn vị", repo.getRescuerTeamName());
         }
         root.addView(infoBox);
 
-        MaterialButton btnEditName = createSheetButton(activity, "Đổi họ tên hiển thị", true, false);
+        MaterialButton btnEditName = createSheetButton(activity, "Đổi tên hiển thị", true, false);
         btnEditName.setOnClickListener(v -> {
             dialog.dismiss();
             showEditFullNameDialog(activity, onProfileUpdated);
         });
         root.addView(btnEditName);
 
-        MaterialButton btnSwitchScreen = createSheetButton(activity, "Chuyển nhanh màn hình", false, false);
-        btnSwitchScreen.setOnClickListener(v -> {
-            dialog.dismiss();
-            showAllScreensMenu(activity);
-        });
-        root.addView(btnSwitchScreen);
-
-        MaterialButton btnLogout = createSheetButton(activity, "Đăng xuất / Đổi vai trò", false, true);
+        MaterialButton btnLogout = createSheetButton(activity, "Đăng xuất", false, true);
         btnLogout.setOnClickListener(v -> {
             dialog.dismiss();
             Intent intent = new Intent(activity, LoginActivity.class);
@@ -292,9 +275,9 @@ public class NavigationHelper {
 
         LinearLayout root = createSheetRoot(
                 activity,
-                "ĐƠN VỊ CỨU HỘ",
+                null,
                 repo.getRescuerTeamName(),
-                "Thông tin đơn vị trực chiến và vị trí đóng quân hiện tại."
+                null
         );
 
         LinearLayout infoBox = new LinearLayout(activity);
@@ -303,18 +286,15 @@ public class NavigationHelper {
         infoBox.setPadding(dp(activity, 16), dp(activity, 8), dp(activity, 16), dp(activity, 8));
         LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        boxLp.topMargin = dp(activity, 16);
+        boxLp.topMargin = dp(activity, 14);
         boxLp.bottomMargin = dp(activity, 8);
         infoBox.setLayoutParams(boxLp);
 
-        addKeyValueRow(activity, infoBox, "Thành viên trực", repo.getRescuerFullName());
+        addKeyValueRow(activity, infoBox, "Thành viên", repo.getRescuerFullName());
         addKeyValueRow(activity, infoBox, "Điện thoại", repo.getRescuerPhone());
-        addKeyValueRow(activity, infoBox, "Tọa độ trực ban",
-                repo.getRescuerBaseLat() + ", " + repo.getRescuerBaseLng());
-        addKeyValueRow(activity, infoBox, "Trạng thái trực", "Tối đa 1 ca cùng lúc");
         root.addView(infoBox);
 
-        MaterialButton btnProfile = createSheetButton(activity, "Mở hồ sơ tài khoản", false, false);
+        MaterialButton btnProfile = createSheetButton(activity, "Tài khoản", false, false);
         btnProfile.setOnClickListener(v -> {
             dialog.dismiss();
             showProfileDialog(activity, onProfileUpdated);
@@ -335,9 +315,9 @@ public class NavigationHelper {
 
         LinearLayout root = createSheetRoot(
                 activity,
-                "HỒ SƠ CÁ NHÂN",
-                "Cập nhật họ và tên",
-                "Nhập họ và tên hiển thị mới của bạn."
+                null,
+                "Đổi tên hiển thị",
+                null
         );
 
         TextInputLayout til = new TextInputLayout(activity, null, com.google.android.material.R.attr.textInputStyle);
@@ -347,7 +327,7 @@ public class NavigationHelper {
         til.setHint("Họ và tên");
         LinearLayout.LayoutParams tilLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tilLp.topMargin = dp(activity, 16);
+        tilLp.topMargin = dp(activity, 14);
         tilLp.bottomMargin = dp(activity, 8);
         til.setLayoutParams(tilLp);
 
@@ -357,13 +337,13 @@ public class NavigationHelper {
         til.addView(input);
         root.addView(til);
 
-        MaterialButton btnSave = createSheetButton(activity, "Lưu thay đổi", true, false);
+        MaterialButton btnSave = createSheetButton(activity, "Lưu", true, false);
         btnSave.setOnClickListener(v -> {
             String newName = input.getText() != null ? input.getText().toString().trim() : "";
             if (!newName.isEmpty()) {
                 repo.updateProfileFullName(newName);
                 dialog.dismiss();
-                showSnack(activity, "Đã cập nhật họ tên: " + newName);
+                showSnack(activity, "Đã cập nhật: " + newName);
                 if (onProfileUpdated != null) onProfileUpdated.run();
             }
         });
@@ -387,9 +367,9 @@ public class NavigationHelper {
 
         LinearLayout root = createSheetRoot(
                 activity,
-                "THÔNG BÁO",
-                "Thông báo hệ thống",
-                "Cập nhật mới nhất về các yêu cầu cứu hộ của bạn."
+                null,
+                "Thông báo",
+                null
         );
 
         ScrollView scroll = new ScrollView(activity);
@@ -424,134 +404,7 @@ public class NavigationHelper {
         scroll.addView(listContainer);
         root.addView(scroll);
 
-        MaterialButton btnReadAll = createSheetButton(
-                activity, "Đánh dấu tất cả đã đọc", true, false);
-        btnReadAll.setOnClickListener(v -> {
-            dialog.dismiss();
-            showSnack(activity, "Đã đánh dấu đã đọc tất cả thông báo");
-        });
-        root.addView(btnReadAll);
-
-        MaterialButton btnClose = createSheetButton(activity, "Đóng", false, false);
-        btnClose.setOnClickListener(v -> dialog.dismiss());
-        root.addView(btnClose);
-
-        dialog.setContentView(root);
-        dialog.show();
-    }
-
-    public static void showAllScreensMenu(Activity activity) {
-        if (activity == null || activity.isFinishing()) return;
-        String[][] screens = new String[][]{
-                {"01", "Màn hình khởi động", "Kiểm tra kết nối & đồng bộ hệ thống"},
-                {"02", "Đăng nhập & Xác thực OTP", "Chọn vai trò và xác minh qua Telegram"},
-                {"03", "Trang chủ Người dân", "Bản đồ cảnh báo cộng đồng & nút SOS"},
-                {"04", "Gửi tín hiệu SOS", "Chia sẻ vị trí, loại sự cố và mô tả"},
-                {"05", "Theo dõi tiến trình cứu hộ", "Bản đồ trực tiếp & trạng thái đội cứu hộ"},
-                {"06", "Kết quả phiên cứu hộ", "Tóm tắt ca cứu hộ & nhật ký hoạt động"},
-                {"07", "Trang chủ Đội cứu hộ", "Danh sách yêu cầu cứu hộ đang chờ"},
-                {"08", "Chi tiết yêu cầu SOS", "Thông tin hiện trường & liên hệ người gửi"},
-                {"09", "Bản đồ điều phối trực tiếp", "Lộ trình tiếp cận & cập nhật tiến trình"},
-                {"10", "Xác nhận hoàn thành ca", "Đóng phiên cứu hộ khi nạn nhân an toàn"}
-        };
-
-        Class<?>[] targets = new Class<?>[]{
-                SplashActivity.class,
-                LoginActivity.class,
-                HomeActivity.class,
-                SendSosActivity.class,
-                TrackSosActivity.class,
-                SosResultActivity.class,
-                RescuerHomeActivity.class,
-                SosDetailActivity.class,
-                RealtimeTrackingActivity.class,
-                ConfirmCompleteActivity.class
-        };
-
-        BottomSheetDialog dialog = new BottomSheetDialog(activity);
-        LinearLayout root = createSheetRoot(
-                activity,
-                "ĐIỀU HƯỚNG NHANH",
-                "Danh sách màn hình",
-                "Chọn màn hình bất kỳ để xem nhanh giao diện."
-        );
-
-        ScrollView scroll = new ScrollView(activity);
-        LinearLayout.LayoutParams scrollLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 360));
-        scrollLp.topMargin = dp(activity, 12);
-        scroll.setLayoutParams(scrollLp);
-
-        LinearLayout list = new LinearLayout(activity);
-        list.setOrientation(LinearLayout.VERTICAL);
-
-        for (int i = 0; i < screens.length; i++) {
-            final int index = i;
-            LinearLayout row = new LinearLayout(activity);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-            row.setPadding(dp(activity, 12), dp(activity, 12), dp(activity, 12), dp(activity, 12));
-            TypedValue outValue = new TypedValue();
-            activity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-            row.setBackgroundResource(outValue.resourceId);
-
-            TextView badge = new TextView(activity);
-            badge.setText(screens[i][0]);
-            badge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-            badge.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            badge.setTextColor(ContextCompat.getColor(activity, R.color.ink));
-            badge.setBackgroundResource(R.drawable.bg_box);
-            badge.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams badgeLp = new LinearLayout.LayoutParams(dp(activity, 36), dp(activity, 36));
-            badgeLp.rightMargin = dp(activity, 12);
-            badge.setLayoutParams(badgeLp);
-            row.addView(badge);
-
-            LinearLayout textCol = new LinearLayout(activity);
-            textCol.setOrientation(LinearLayout.VERTICAL);
-            textCol.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
-            TextView t1 = new TextView(activity);
-            t1.setText(screens[i][1]);
-            t1.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
-            t1.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-            t1.setTextColor(ContextCompat.getColor(activity, R.color.ink));
-            textCol.addView(t1);
-
-            TextView t2 = new TextView(activity);
-            t2.setText(screens[i][2]);
-            t2.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-            t2.setTextColor(ContextCompat.getColor(activity, R.color.ink_tertiary));
-            textCol.addView(t2);
-
-            row.addView(textCol);
-
-            ImageView arrow = new ImageView(activity);
-            arrow.setImageResource(R.drawable.ic_chevron_right);
-            arrow.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(activity, R.color.ink_tertiary)));
-            arrow.setLayoutParams(new LinearLayout.LayoutParams(dp(activity, 20), dp(activity, 20)));
-            row.addView(arrow);
-
-            row.setOnClickListener(v -> {
-                dialog.dismiss();
-                Intent intent = new Intent(activity, targets[index]);
-                activity.startActivity(intent);
-            });
-            list.addView(row);
-
-            if (i < screens.length - 1) {
-                View div = new View(activity);
-                div.setLayoutParams(new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 1)));
-                div.setBackgroundColor(ContextCompat.getColor(activity, R.color.line));
-                list.addView(div);
-            }
-        }
-
-        scroll.addView(list);
-        root.addView(scroll);
-
-        MaterialButton btnClose = createSheetButton(activity, "Đóng", false, false);
+        MaterialButton btnClose = createSheetButton(activity, "Đóng", true, false);
         btnClose.setOnClickListener(v -> dialog.dismiss());
         root.addView(btnClose);
 

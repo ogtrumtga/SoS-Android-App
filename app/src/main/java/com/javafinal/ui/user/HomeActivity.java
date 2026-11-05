@@ -17,7 +17,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.javafinal.R;
 import com.javafinal.data.MockDataRepository;
 import com.javafinal.model.SosRequest;
@@ -31,7 +30,6 @@ import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 
 import java.util.List;
-import java.util.Locale;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -39,7 +37,6 @@ public class HomeActivity extends AppCompatActivity {
     private MapLibreMap mapLibreMap;
 
     private TextView tvUserGreeting;
-    private TextView tvMyLocation;
     private MaterialCardView cardMyActiveSos;
     private TextView tvActiveSosSummary;
     private String currentFilter = "ALL";
@@ -62,14 +59,13 @@ public class HomeActivity extends AppCompatActivity {
         repo.setCurrentRole(MockDataRepository.ROLE_USER);
 
         tvUserGreeting = findViewById(R.id.tvUserGreeting);
-        tvMyLocation = findViewById(R.id.tvMyLocation);
         cardMyActiveSos = findViewById(R.id.cardMyActiveSos);
         tvActiveSosSummary = findViewById(R.id.tvActiveSosSummary);
         MaterialButton btnTrackActiveSos = findViewById(R.id.btnTrackActiveSos);
 
         ChipGroup chipGroupFilter = findViewById(R.id.chipGroupFilter);
-        FloatingActionButton fabLayers = findViewById(R.id.fabLayers);
-        FloatingActionButton fabMyLocation = findViewById(R.id.fabMyLocation);
+        MaterialButton fabLayers = findViewById(R.id.fabLayers);
+        MaterialButton fabMyLocation = findViewById(R.id.fabMyLocation);
         MaterialButton btnSos = findViewById(R.id.btnSos);
         MaterialButton btnNotifications = findViewById(R.id.btnNotifications);
         MaterialButton btnProfile = findViewById(R.id.btnProfile);
@@ -114,32 +110,24 @@ public class HomeActivity extends AppCompatActivity {
         fabLayers.setOnClickListener(v ->
                 MapHelper.showLayerSwitchDialog(this, mapLibreMap, this::renderPublicMapMarkers));
 
-        fabMyLocation.setOnClickListener(v -> {
-            MapHelper.moveCamera(mapLibreMap, repo.getMyLat(), repo.getMyLng(), 15.2);
-            tvMyLocation.setText(String.format(Locale.US,
-                    "GPS: %.4f, %.4f (±%.1fm)",
-                    repo.getMyLat(), repo.getMyLng(), repo.getMyAccuracyM()));
-            NavigationHelper.showSnack(this, "Đã căn giữa vị trí của bạn");
-        });
+        fabMyLocation.setOnClickListener(v ->
+                MapHelper.moveCamera(mapLibreMap, repo.getMyLat(), repo.getMyLng(), 15.2));
 
-        // Kiểm tra phiên SOS đang mở khi bấm nút tạo SOS
         btnSos.setOnClickListener(v -> {
             SosRequest active = repo.getMyActiveUserSos();
             if (active != null) {
                 NavigationHelper.showConfirmSheet(
                         this,
-                        "YÊU CẦU ĐANG MỞ",
-                        "Bạn đang có một yêu cầu SOS",
-                        "Hệ thống đang xử lý yêu cầu cứu hộ hiện tại của bạn.\n\n"
-                                + "Mã yêu cầu: " + active.getShortId() + " (" + active.getStatusLabel() + ")\n"
-                                + "Sự cố: " + active.getEmergencyTypeLabel(),
-                        "Theo dõi yêu cầu hiện tại",
+                        null,
+                        "Đang có yêu cầu SOS",
+                        active.getEmergencyTypeLabel() + " • " + active.getStatusLabel(),
+                        "Theo dõi yêu cầu",
                         false,
                         () -> {
                             repo.setLastViewedSos(active);
                             startActivity(new Intent(HomeActivity.this, TrackSosActivity.class));
                         },
-                        "Tạo yêu cầu mới",
+                        "Tạo mới",
                         () -> startActivity(new Intent(HomeActivity.this, SendSosActivity.class))
                 );
             } else {
@@ -178,37 +166,29 @@ public class HomeActivity extends AppCompatActivity {
 
     private void updateHeaderAndActiveSosBanner() {
         MockDataRepository repo = MockDataRepository.getInstance();
-        tvUserGreeting.setText("Xin chào, " + repo.getCurrentFullName());
+        tvUserGreeting.setText("Bản đồ cứu hộ");
 
         SosRequest active = repo.getMyActiveUserSos();
         if (active != null) {
             cardMyActiveSos.setVisibility(View.VISIBLE);
-            tvActiveSosSummary.setText(active.getShortId() + " • " + active.getEmergencyTypeLabel()
-                    + " • " + active.getStatusLabel());
+            tvActiveSosSummary.setText("● " + active.getEmergencyTypeLabel() + " • " + active.getStatusLabel());
         } else {
             cardMyActiveSos.setVisibility(View.GONE);
         }
     }
 
-    /**
-     * Hiển thị các điểm cảnh báo cộng đồng trên bản đồ
-     */
     private void renderPublicMapMarkers() {
         if (mapLibreMap == null) return;
         mapLibreMap.clear();
 
         MockDataRepository repo = MockDataRepository.getInstance();
 
-        // 1. Vị trí GPS chính xác của bản thân
         Icon myIcon = MapHelper.createPinIcon(this, Color.parseColor("#111111"), "BẠN");
         mapLibreMap.addMarker(new MarkerOptions()
                 .position(new LatLng(repo.getMyLat(), repo.getMyLng()))
                 .title("Vị trí của bạn")
-                .snippet(String.format(Locale.US, "%.6f, %.6f (±%.1fm)",
-                        repo.getMyLat(), repo.getMyLng(), repo.getMyAccuracyM()))
                 .icon(myIcon));
 
-        // 2. Các điểm cảnh báo trên bản đồ cộng đồng
         List<SosRequest> publicList = repo.getPublicMapSosList(currentFilter);
         Icon publicSosIcon = MapHelper.createPinIcon(this, Color.parseColor("#E5383B"), "SOS");
 
@@ -216,12 +196,12 @@ public class HomeActivity extends AppCompatActivity {
             double areaLat = s.getAreaLat();
             double areaLng = s.getAreaLng();
 
-            MapHelper.addFloodZonePolygon(mapLibreMap, areaLat, areaLng, 0.0042);
+            MapHelper.addFloodZonePolygon(mapLibreMap, areaLat, areaLng, 0.0028);
 
             mapLibreMap.addMarker(new MarkerOptions()
                     .position(new LatLng(areaLat, areaLng))
-                    .title(s.getShortId() + " • " + s.getEmergencyTypeLabel())
-                    .snippet(s.getDescription() + " • " + s.getCreatedAt())
+                    .title(s.getEmergencyTypeLabel())
+                    .snippet(s.getDescription())
                     .icon(publicSosIcon));
         }
     }

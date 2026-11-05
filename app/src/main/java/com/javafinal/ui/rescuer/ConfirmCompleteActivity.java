@@ -16,7 +16,6 @@ import com.google.android.material.checkbox.MaterialCheckBox;
 import com.javafinal.R;
 import com.javafinal.data.MockDataRepository;
 import com.javafinal.model.SosRequest;
-import com.javafinal.ui.user.SosResultActivity;
 import com.javafinal.util.NavigationHelper;
 
 public class ConfirmCompleteActivity extends AppCompatActivity {
@@ -45,17 +44,14 @@ public class ConfirmCompleteActivity extends AppCompatActivity {
         TextView tvEmergencyNature = findViewById(R.id.tvEmergencyNature);
         TextView tvAddress = findViewById(R.id.tvAddress);
         TextView tvVictimStatus = findViewById(R.id.tvVictimStatus);
-        TextView tvTeamSummary = findViewById(R.id.tvTeamSummary);
 
         MaterialCheckBox cbConfirmComplete = findViewById(R.id.cbConfirmComplete);
         MaterialButton btnCompleteMission = findViewById(R.id.btnCompleteMission);
-        MaterialButton btnBackToScene = findViewById(R.id.btnBackToScene);
 
-        tvSosCode.setText(mission.getShortId() + " • " + mission.getVisibilityLabel());
-        tvEmergencyNature.setText("Loại sự cố: " + mission.getEmergencyTypeLabel());
-        tvAddress.setText("Mô tả: " + mission.getDescription());
-        tvVictimStatus.setText("Nạn nhân: " + mission.getRequesterName() + " • " + mission.getRequesterPhone());
-        tvTeamSummary.setText("Đội thực hiện: " + repo.getRescuerTeamName() + " (" + repo.getRescuerFullName() + ")");
+        tvSosCode.setText("SOS " + mission.getShortId());
+        tvEmergencyNature.setText(mission.getEmergencyTypeLabel());
+        tvVictimStatus.setText(mission.getRequesterName() + " • " + mission.getRequesterPhone());
+        tvAddress.setText(mission.getDescription());
 
         cbConfirmComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
             btnCompleteMission.setEnabled(isChecked);
@@ -63,35 +59,15 @@ public class ConfirmCompleteActivity extends AppCompatActivity {
 
         btnCompleteMission.setOnClickListener(v -> {
             if (!cbConfirmComplete.isChecked()) {
-                NavigationHelper.showSnack(this, "Vui lòng tích xác nhận hoàn thành ca cứu hộ");
+                NavigationHelper.showSnack(this, "Vui lòng xác nhận đã hỗ trợ nạn nhân an toàn");
                 return;
             }
 
             repo.completeMission(mission);
-
-            NavigationHelper.showConfirmSheet(
-                    this,
-                    "HOÀN TẤT",
-                    "Đã hoàn thành ca cứu hộ",
-                    "Ca cứu hộ " + mission.getShortId() + " đã được xác nhận hoàn thành an toàn.\n\n"
-                            + "Hệ thống đã tự động ngắt chia sẻ vị trí trực tiếp và đưa đội trở về trạng thái sẵn sàng nhận ca mới.",
-                    "Về danh sách cứu hộ",
-                    false,
-                    () -> {
-                        Intent intent = new Intent(ConfirmCompleteActivity.this, RescuerHomeActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(intent);
-                        finish();
-                    },
-                    "Xem kết quả",
-                    () -> {
-                        Intent intent = new Intent(ConfirmCompleteActivity.this, SosResultActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-            );
+            Intent intent = new Intent(ConfirmCompleteActivity.this, RescuerHomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
         });
-
-        btnBackToScene.setOnClickListener(v -> finish());
     }
 }

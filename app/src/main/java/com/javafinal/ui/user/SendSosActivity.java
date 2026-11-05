@@ -39,7 +39,6 @@ public class SendSosActivity extends AppCompatActivity {
     private MapLibreMap mapLibreMap;
 
     private TextView tvCoordinates;
-    private TextView tvAccuracy;
     private TextInputEditText edtDescription;
     private ChipGroup chipGroupType;
     private RadioGroup rgPrivacy;
@@ -73,7 +72,6 @@ public class SendSosActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
 
         tvCoordinates = findViewById(R.id.tvCoordinates);
-        tvAccuracy = findViewById(R.id.tvAccuracy);
         MaterialButton btnRefreshGps = findViewById(R.id.btnRefreshGps);
 
         mapPreview = findViewById(R.id.mapPreview);
@@ -96,7 +94,6 @@ public class SendSosActivity extends AppCompatActivity {
                 repo.setMyLocation(selectedLat, selectedLng, selectedAccuracy);
                 updateCoordinatesUi();
                 renderPinOnPreview();
-                NavigationHelper.showSnack(this, "Đã cập nhật tọa độ ghim trên bản đồ");
                 return true;
             });
         });
@@ -111,7 +108,6 @@ public class SendSosActivity extends AppCompatActivity {
                 MapHelper.moveCamera(mapLibreMap, selectedLat, selectedLng, 16.0);
                 renderPinOnPreview();
             }
-            NavigationHelper.showSnack(this, "Đã làm mới tọa độ GPS hiện tại");
         });
 
         chipGroupType = findViewById(R.id.chipGroupType);
@@ -140,18 +136,13 @@ public class SendSosActivity extends AppCompatActivity {
             }
         }
 
-        findViewById(R.id.btnCall112).setOnClickListener(v -> NavigationHelper.dialPhone(this, "112"));
-        findViewById(R.id.btnCall114).setOnClickListener(v -> NavigationHelper.dialPhone(this, "114"));
-        findViewById(R.id.btnCall115).setOnClickListener(v -> NavigationHelper.dialPhone(this, "115"));
-        findViewById(R.id.btnCall113).setOnClickListener(v -> NavigationHelper.dialPhone(this, "113"));
-
         MaterialButton btnSubmitSos = findViewById(R.id.btnSubmitSos);
         btnSubmitSos.setOnClickListener(v -> submitSosRequest());
     }
 
     private void updateCoordinatesUi() {
-        tvCoordinates.setText(String.format(Locale.US, "%.6f, %.6f", selectedLat, selectedLng));
-        tvAccuracy.setText(String.format(Locale.US, "±%.1fm", selectedAccuracy));
+        tvCoordinates.setText(String.format(Locale.US, "%.5f, %.5f (±%.1fm)",
+                selectedLat, selectedLng, selectedAccuracy));
     }
 
     private void renderPinOnPreview() {
@@ -161,13 +152,12 @@ public class SendSosActivity extends AppCompatActivity {
         mapLibreMap.addMarker(new MarkerOptions()
                 .position(new LatLng(selectedLat, selectedLng))
                 .title("Vị trí cần cứu hộ")
-                .snippet(String.format(Locale.US, "%.6f, %.6f", selectedLat, selectedLng))
                 .icon(sosPin));
     }
 
     private void submitSosRequest() {
         if (selectedLat < -90 || selectedLat > 90 || selectedLng < -180 || selectedLng > 180) {
-            NavigationHelper.showSnack(this, "Tọa độ vị trí không hợp lệ");
+            NavigationHelper.showSnack(this, "Tọa độ không hợp lệ");
             return;
         }
 
@@ -185,7 +175,7 @@ public class SendSosActivity extends AppCompatActivity {
 
         String desc = edtDescription.getText() != null ? edtDescription.getText().toString().trim() : "";
         if (desc.isEmpty()) {
-            NavigationHelper.showSnack(this, "Vui lòng nhập mô tả tình trạng khẩn cấp");
+            NavigationHelper.showSnack(this, "Vui lòng nhập mô tả tình trạng");
             return;
         }
 

@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -16,14 +17,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.javafinal.R;
 import com.javafinal.data.MockDataRepository;
 import com.javafinal.model.SosRequest;
 import com.javafinal.util.MapHelper;
 import com.javafinal.util.NavigationHelper;
 
-import org.maplibre.android.geometry.LatLng;
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 
@@ -36,7 +35,6 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
     private SosRequest currentMission;
 
     private TextView tvMissionCode;
-    private TextView tvSyncStatus;
     private TextView tvDistanceRemain;
     private TextView tvSpeed;
     private TextView tvEta;
@@ -45,7 +43,6 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
     private TextView tvTypeBadge;
 
     private MaterialButton btnArrived;
-    private MaterialButton btnComplete;
     private MaterialButton btnYieldMission;
 
     private final Handler locationBroadcastHandler = new Handler(Looper.getMainLooper());
@@ -54,20 +51,12 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
         public void run() {
             if (isFinishing() || currentMission == null) return;
             if (SosRequest.STATUS_RESCUING.equals(currentMission.getStatus())) {
-                double rLat = currentMission.getRescuerLat();
-                double rLng = currentMission.getRescuerLng();
-                double vLat = currentMission.getVictimLat();
-                double vLng = currentMission.getVictimLng();
-
-                double nextLat = rLat + (vLat - rLat) * 0.25;
-                double nextLng = rLng + (vLng - rLng) * 0.25;
-                currentMission.setRescuerLat(nextLat);
-                currentMission.setRescuerLng(nextLng);
-
-                tvSyncStatus.setText("Đang đồng bộ vị trí trực tiếp");
+                boolean moved = currentMission.advanceAlongRoute();
                 syncUiWithStatus();
                 renderTacticalMap();
-                locationBroadcastHandler.postDelayed(this, 4000);
+                if (moved) {
+                    locationBroadcastHandler.postDelayed(this, 3200);
+                }
             }
         }
     };
@@ -98,11 +87,10 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
 
         MaterialButton btnBack = findViewById(R.id.btnBack);
         tvMissionCode = findViewById(R.id.tvMissionCode);
-        tvSyncStatus = findViewById(R.id.tvSyncStatus);
         MaterialButton btnCallVictim = findViewById(R.id.btnCallVictim);
 
-        FloatingActionButton fabLayers = findViewById(R.id.fabLayers);
-        FloatingActionButton fabMyLocation = findViewById(R.id.fabMyLocation);
+        MaterialButton fabLayers = findViewById(R.id.fabLayers);
+        MaterialButton fabMyLocation = findViewById(R.id.fabMyLocation);
 
         tvDistanceRemain = findViewById(R.id.tvDistanceRemain);
         tvSpeed = findViewById(R.id.tvSpeed);
@@ -113,7 +101,6 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
         tvTypeBadge = findViewById(R.id.tvTypeBadge);
 
         btnArrived = findViewById(R.id.btnArrived);
-        btnComplete = findViewById(R.id.btnComplete);
         btnYieldMission = findViewById(R.id.btnYieldMission);
 
         mapView = findViewById(R.id.mapView);
@@ -133,32 +120,19 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
         fabLayers.setOnClickListener(v ->
                 MapHelper.showLayerSwitchDialog(this, mapLibreMap, this::renderTacticalMap));
 
-        fabMyLocation.setOnClickListener(v -> {
-            if (mapLibreMap != null) {
-                MapHelper.fitTwoPoints(
-                        mapLibreMap,
-                        new LatLng(currentMission.getRescuerLat(), currentMission.getRescuerLng()),
-                        new LatLng(currentMission.getVictimLat(), currentMission.getVictimLng()),
-                        120
-                );
-            }
-        });
+        fabMyLocation.setOnClickListener(v -> renderTacticalMap());
 
-        // Cập nhật tiến trình tuần tự: ACCEPTED -> RESCUING -> ARRIVED
         btnArrived.setOnClickListener(v -> {
             String st = currentMission.getStatus();
             if (SosRequest.STATUS_ACCEPTED.equals(st)) {
                 repo.updateMissionStatus(currentMission, SosRequest.STATUS_RESCUING);
-                NavigationHelper.showSnack(this, "Đội đã bắt đầu di chuyển tới hiện trường");
                 syncUiWithStatus();
                 renderTacticalMap();
-                locationBroadcastHandler.postDelayed(locationBroadcastRunnable, 3500);
+                locationBroadcastHandler.postDelayed(locationBroadcastRunnable, 2500);
             } else if (SosRequest.STATUS_RESCUING.equals(st)) {
                 locationBroadcastHandler.removeCallbacks(locationBroadcastRunnable);
                 repo.updateMissionStatus(currentMission, SosRequest.STATUS_ARRIVED);
-                currentMission.setRescuerLat(currentMission.getVictimLat() - 0.0002);
-                currentMission.setRescuerLng(currentMission.getVictimLng() - 0.0002);
-                NavigationHelper.showSnack(this, "Đã tới hiện trường");
+                currentMission.snapRescuerToDestination();
                 syncUiWithStatus();
                 renderTacticalMap();
             } else if (SosRequest.STATUS_ARRIVED.equals(st)) {
@@ -166,30 +140,16 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
             }
         });
 
-        // Hoàn thành ca (bắt buộc phải tới nơi trước)
-        btnComplete.setOnClickListener(v -> {
-            if (!SosRequest.STATUS_ARRIVED.equals(currentMission.getStatus())) {
-                NavigationHelper.showSnack(this,
-                        "Vui lòng cập nhật trạng thái đã tới nơi trước khi hoàn thành ca");
-                return;
-            }
-            openConfirmComplete();
-        });
-
-        // Nhả ca (chỉ cho phép khi chưa tới nơi)
         btnYieldMission.setOnClickListener(v -> {
             if (SosRequest.STATUS_ARRIVED.equals(currentMission.getStatus())) {
-                NavigationHelper.showSnack(this,
-                        "Không thể nhượng ca khi đội đã có mặt tại hiện trường");
                 return;
             }
             NavigationHelper.showConfirmSheet(
                     this,
-                    "NHƯỢNG LẠI CA",
-                    "Xác nhận nhượng lại ca cứu hộ?",
-                    "Đội gặp sự cố hoặc cần chuyển giao ca cứu hộ này cho đội khác?\n\n"
-                            + "Yêu cầu sẽ quay lại danh sách chờ để đội cứu hộ gần nhất tiếp nhận.",
-                    "Xác nhận nhượng ca",
+                    null,
+                    "Nhả ca cứu hộ?",
+                    "Yêu cầu sẽ quay lại hàng đợi để đội khác tiếp nhận.",
+                    "Xác nhận nhả ca",
                     true,
                     () -> {
                         repo.releaseMission(currentMission);
@@ -209,52 +169,49 @@ public class RealtimeTrackingActivity extends AppCompatActivity {
 
     private void syncUiWithStatus() {
         String st = currentMission.getStatus();
-        tvMissionCode.setText(currentMission.getShortId() + " • " + currentMission.getStatusLabel());
+        tvMissionCode.setText("SOS " + currentMission.getShortId());
         tvVictimTitle.setText(currentMission.getDescription());
-        tvVictimDetail.setText("Nạn nhân: " + currentMission.getRequesterName() + " • " + currentMission.getRequesterPhone());
+        tvVictimDetail.setText(currentMission.getRequesterName() + " • " + currentMission.getRequesterPhone());
         tvTypeBadge.setText(currentMission.getEmergencyTypeLabel());
 
-        double distKm = currentMission.getDistanceKmFrom(
-                currentMission.getRescuerLat(), currentMission.getRescuerLng());
+        double distKm = currentMission.getRemainingRouteDistanceKm();
         tvDistanceRemain.setText(SosRequest.STATUS_ARRIVED.equals(st)
                 ? "0.0 km"
-                : String.format(Locale.US, "%.2f km", distKm));
+                : String.format(Locale.US, "%.1f km", distKm));
         tvSpeed.setText(String.format(Locale.US, "±%.1fm", currentMission.getRescuerAccuracyM()));
         tvEta.setText(currentMission.getStatusLabel());
 
         if (SosRequest.STATUS_ACCEPTED.equals(st)) {
-            btnArrived.setText("Bước 1: Bắt đầu di chuyển");
+            btnArrived.setText("Bắt đầu di chuyển");
             btnArrived.setBackgroundTintList(ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.ink)));
-            btnComplete.setAlpha(0.5f);
-            btnYieldMission.setEnabled(true);
+            btnYieldMission.setVisibility(View.VISIBLE);
         } else if (SosRequest.STATUS_RESCUING.equals(st)) {
-            btnArrived.setText("Bước 2: Xác nhận đã tới hiện trường");
+            btnArrived.setText("Đã tới hiện trường");
             btnArrived.setBackgroundTintList(ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.red)));
-            btnComplete.setAlpha(0.5f);
-            btnYieldMission.setEnabled(true);
+            btnYieldMission.setVisibility(View.VISIBLE);
         } else {
-            btnArrived.setText("Đã tới nơi • Bấm để hoàn thành ca");
+            btnArrived.setText("Hoàn thành ca cứu hộ");
             btnArrived.setBackgroundTintList(ColorStateList.valueOf(
                     ContextCompat.getColor(this, R.color.green)));
-            btnComplete.setAlpha(1.0f);
-            btnYieldMission.setEnabled(false);
+            btnYieldMission.setVisibility(View.GONE);
         }
     }
 
     private void renderTacticalMap() {
         if (mapLibreMap == null || currentMission == null) return;
         mapLibreMap.clear();
+        MockDataRepository repo = MockDataRepository.getInstance();
         MapHelper.drawRescueRoute(
                 this,
                 mapLibreMap,
-                currentMission.getRescuerLat(),
-                currentMission.getRescuerLng(),
-                currentMission.getVictimLat(),
-                currentMission.getVictimLng(),
-                "Đội: " + currentMission.getTeamName(),
-                "Nạn nhân: " + currentMission.getRequesterName()
+                currentMission,
+                repo.getRescuerBaseLat(),
+                repo.getRescuerBaseLng(),
+                currentMission.getTeamName(),
+                currentMission.getRequesterName(),
+                this::syncUiWithStatus
         );
     }
 

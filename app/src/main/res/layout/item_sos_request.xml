@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Item trong danh sách hàng đợi cứu hộ (Chuẩn API GET /api/rescuer/queue) -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp">
+    android:layout_marginBottom="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
-        <!-- Dòng 1: sos_id + emergency_type + visibility + status WAITING -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,19 +18,10 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvSosCode"
-                style="@style/Text.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="#2CC295A6"
-                android:textSize="14sp" />
-
-            <TextView
                 android:id="@+id/tvPrivacyBadge"
                 style="@style/Text.Tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:text="Ngập lụt • Công khai" />
 
             <View
@@ -42,81 +30,60 @@
                 android:layout_weight="1" />
 
             <TextView
-                android:id="@+id/tvWaitingTime"
-                style="@style/Text.Overline"
+                android:id="@+id/tvDistance"
+                style="@style/Text.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đang chờ"
-                android:textColor="@color/red" />
+                android:fontFamily="sans-serif-medium"
+                android:text="~0.9 km"
+                android:textColor="@color/ink" />
         </LinearLayout>
 
-        <!-- Dòng 2: description (Mô tả của nạn nhân) -->
         <TextView
             android:id="@+id/tvIncidentTitle"
             style="@style/Text.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:lineSpacingExtra="2dp"
+            android:layout_marginTop="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
             android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển"
-            android:textSize="15.5sp" />
+            android:textSize="15sp" />
 
-        <!-- Dòng 3: requester (full_name & phone) -->
         <TextView
             android:id="@+id/tvPeopleSummary"
-            style="@style/Text.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Người gửi: Nguyễn Văn An • 0901234567" />
-
-        <!-- Dòng 4: Tọa độ (initial_lat, initial_lng) -->
-        <TextView
-            android:id="@+id/tvAddress"
             style="@style/Text.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Tọa độ GPS: 10.776889, 106.700806" />
+            android:text="Nguyễn Văn An • 0901234567" />
 
-        <!-- Dòng 5: Khoảng cách & thời gian tạo created_at -->
-        <TextView
-            android:id="@+id/tvDistance"
-            style="@style/Text.Caption"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="Cách đội ~0.9 km • Tạo lúc: 09:21:34"
-            android:textColor="@color/ink" />
-
-        <!-- Nút hành động: Xem chi tiết (GET /api/sos/{id}) & Tiếp nhận ca (POST /accept) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDetail"
                 style="@style/Button.Secondary"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:minHeight="44dp"
+                android:minHeight="40dp"
                 android:text="Chi tiết"
-                android:textSize="13.5sp" />
+                android:textSize="13sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAccept"
                 style="@style/Button.Primary"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="40dp"
                 android:layout_weight="1.2"
-                android:minHeight="44dp"
-                android:text="Tiếp nhận ca"
-                android:textSize="13.5sp" />
+                android:minHeight="40dp"
+                android:text="Nhận ca"
+                android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

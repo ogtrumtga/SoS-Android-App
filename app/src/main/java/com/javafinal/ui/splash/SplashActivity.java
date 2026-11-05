@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,32 +35,15 @@ public class SplashActivity extends AppCompatActivity {
             return insets;
         });
 
-        TextView tvSplashStatus = findViewById(R.id.tvSplashStatus);
-        TextView tvSplashSubStatus = findViewById(R.id.tvSplashSubStatus);
         LinearProgressIndicator progressLinear = findViewById(R.id.progressLinear);
-
-        handler.postDelayed(() -> {
-            if (progressLinear != null) {
-                progressLinear.setProgressCompat(72, true);
-            }
-            if (tvSplashStatus != null) {
-                tvSplashStatus.setText("Đang xác thực phiên làm việc...");
-            }
-            if (tvSplashSubStatus != null) {
-                tvSplashSubStatus.setText("Đang tải dữ liệu bản đồ và vị trí");
-            }
-        }, 650);
 
         handler.postDelayed(() -> {
             if (progressLinear != null) {
                 progressLinear.setProgressCompat(100, true);
             }
-            if (tvSplashStatus != null) {
-                tvSplashStatus.setText("Hệ thống đã sẵn sàng");
-            }
-        }, 1250);
+        }, 600);
 
-        handler.postDelayed(this::goToLogin, 1650);
+        handler.postDelayed(this::goToLogin, 1100);
 
         findViewById(R.id.main).setOnClickListener(v -> goToLogin());
     }

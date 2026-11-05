@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 9. Điều phối & Định vị Realtime Đội cứu hộ (Chuẩn API POST /status, POST /release, POST /location/{sos_id}) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
@@ -8,7 +7,7 @@
     android:background="@color/white"
     android:orientation="vertical">
 
-    <!-- Header trạng thái phiên điều phối -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,30 +25,15 @@
             android:contentDescription="Quay lại"
             app:icon="@drawable/ic_arrow_back" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvMissionCode"
+            style="@style/Text.Title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvMissionCode"
-                style="@style/Text.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="#2CC295A6 • Đã tiếp nhận"
-                android:textSize="15sp" />
-
-            <TextView
-                android:id="@+id/tvSyncStatus"
-                style="@style/Text.Caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:text="Đang đồng bộ vị trí trực tiếp"
-                android:textColor="@color/green" />
-        </LinearLayout>
+            android:text="Điều phối cứu hộ"
+            android:textSize="16sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCallVictim"
@@ -62,152 +46,158 @@
 
     <View style="@style/Divider" />
 
-    <!-- Bản đồ tác chiến Realtime -->
+    <!-- Bản đồ -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- MapLibre MapView -->
         <org.maplibre.android.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- Banner trạng thái lộ trình -->
-        <TextView
-            android:id="@+id/tvHazardBanner"
-            style="@style/Text.Tag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="@color/white"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="6dp"
-            android:text="Lộ trình di chuyển tới nạn nhân"
-            android:textColor="@color/ink" />
-
-        <!-- Nút điều khiển bản đồ -->
+        <!-- Cụm nút bản đồ + Thống kê nằm trong cùng 1 LinearLayout ở đáy để không đè lên nhau -->
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="16dp"
-            android:orientation="vertical">
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fabLayers"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="Đổi lớp bản đồ"
-                app:backgroundTint="@color/white"
-                app:elevation="2dp"
-                app:fabSize="mini"
-                app:srcCompat="@drawable/ic_layers"
-                app:tint="@color/ink" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fabMyLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:contentDescription="Căn giữa bản đồ"
-                app:backgroundTint="@color/white"
-                app:elevation="2dp"
-                app:fabSize="mini"
-                app:srcCompat="@drawable/ic_my_location"
-                app:tint="@color/ink" />
-        </LinearLayout>
-
-        <!-- Thông số tọa độ 2 bên -->
-        <com.google.android.material.card.MaterialCardView
-            style="@style/Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_margin="14dp"
-            app:cardBackgroundColor="@color/white">
+            android:orientation="vertical"
+            android:padding="14dp">
 
             <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginBottom="10dp"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Card"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fabLayers"
+                        style="@style/Button.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Đổi lớp bản đồ"
+                        app:icon="@drawable/ic_layers"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="20dp" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Card"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fabMyLocation"
+                        style="@style/Button.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Căn giữa bản đồ"
+                        app:icon="@drawable/ic_my_location"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconSize="20dp" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="12dp">
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:paddingVertical="10dp">
 
-                    <TextView
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Khoảng cách" />
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvDistanceRemain"
-                        style="@style/Text.Title"
-                        android:layout_width="wrap_content"
+                        <TextView
+                            style="@style/Text.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Khoảng cách" />
+
+                        <TextView
+                            android:id="@+id/tvDistanceRemain"
+                            style="@style/Text.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="0.9 km" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="0.9 km" />
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Text.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Độ chính xác" />
+
+                        <TextView
+                            android:id="@+id/tvSpeed"
+                            style="@style/Text.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="±8.0m" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Text.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Trạng thái" />
+
+                        <TextView
+                            android:id="@+id/tvEta"
+                            style="@style/Text.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Đã nhận"
+                            android:textColor="@color/red" />
+                    </LinearLayout>
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Độ chính xác" />
-
-                    <TextView
-                        android:id="@+id/tvSpeed"
-                        style="@style/Text.Title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="±8.0m" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Trạng thái" />
-
-                    <TextView
-                        android:id="@+id/tvEta"
-                        style="@style/Text.Title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Đã tiếp nhận"
-                        android:textColor="@color/red" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </FrameLayout>
 
     <View style="@style/Divider" />
 
-    <!-- Bảng điều khiển chuyển trạng thái tuần tự -->
+    <!-- Bảng điều khiển -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -221,75 +211,61 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvVictimDetail"
+                style="@style/Text.Title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvVictimTitle"
-                    style="@style/Text.Title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển"
-                    android:textSize="14.5sp" />
-
-                <TextView
-                    android:id="@+id/tvVictimDetail"
-                    style="@style/Text.Caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="Nạn nhân: Nguyễn Văn An • 0901234567" />
-            </LinearLayout>
+                android:text="Nguyễn Văn An • 0901234567"
+                android:textSize="14.5sp" />
 
             <TextView
                 android:id="@+id/tvTypeBadge"
                 style="@style/Text.Tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:backgroundTint="@color/red_soft"
                 android:text="Ngập lụt"
                 android:textColor="@color/red" />
         </LinearLayout>
 
-        <!-- Nút cập nhật tiến trình tuần tự -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnArrived"
-            style="@style/Button.Primary"
+        <TextView
+            android:id="@+id/tvVictimTitle"
+            style="@style/Text.Caption"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="14dp"
-            android:text="Bước 1: Bắt đầu di chuyển" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="14dp"
             android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnComplete"
-                style="@style/Button.Secondary"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:minHeight="44dp"
-                android:text="Hoàn thành ca"
-                android:textSize="13.5sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnYieldMission"
                 style="@style/Button.Secondary"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:minHeight="44dp"
-                android:text="Nhượng lại ca"
-                android:textSize="13.5sp" />
+                android:layout_height="50dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="0.8"
+                android:minHeight="50dp"
+                android:text="Nhả ca"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnArrived"
+                style="@style/Button.Primary"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.5"
+                android:minHeight="50dp"
+                android:text="Bắt đầu di chuyển"
+                android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -59,18 +59,12 @@ public class SosRequestAdapter extends RecyclerView.Adapter<SosRequestAdapter.So
         Context context = holder.itemView.getContext();
         MockDataRepository repo = MockDataRepository.getInstance();
 
-        holder.tvSosCode.setText(req.getShortId());
         holder.tvPrivacyBadge.setText(req.getEmergencyTypeLabel() + " • " + req.getVisibilityLabel());
-        holder.tvWaitingTime.setText(req.getStatusLabel());
-
         holder.tvIncidentTitle.setText(req.getDescription());
-        holder.tvPeopleSummary.setText("Người gửi: " + req.getRequesterName() + " • " + req.getRequesterPhone());
-        holder.tvAddress.setText(String.format(Locale.US,
-                "Tọa độ: %.6f, %.6f", req.getInitialLat(), req.getInitialLng()));
+        holder.tvPeopleSummary.setText(req.getRequesterName() + " • " + req.getRequesterPhone());
 
         double distKm = req.getDistanceKmFrom(repo.getRescuerBaseLat(), repo.getRescuerBaseLng());
-        holder.tvDistance.setText(String.format(Locale.US,
-                "Cách đội ~%.1f km • %s", distKm, req.getCreatedAt()));
+        holder.tvDistance.setText(String.format(Locale.US, "~%.1f km", distKm));
 
         boolean isPrivate = SosRequest.VISIBILITY_PRIVATE.equals(req.getVisibility());
         if (isPrivate) {
@@ -102,24 +96,18 @@ public class SosRequestAdapter extends RecyclerView.Adapter<SosRequestAdapter.So
     }
 
     static class SosViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvSosCode;
         final TextView tvPrivacyBadge;
-        final TextView tvWaitingTime;
         final TextView tvIncidentTitle;
         final TextView tvPeopleSummary;
-        final TextView tvAddress;
         final TextView tvDistance;
         final MaterialButton btnDetail;
         final MaterialButton btnAccept;
 
         SosViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvSosCode = itemView.findViewById(R.id.tvSosCode);
             tvPrivacyBadge = itemView.findViewById(R.id.tvPrivacyBadge);
-            tvWaitingTime = itemView.findViewById(R.id.tvWaitingTime);
             tvIncidentTitle = itemView.findViewById(R.id.tvIncidentTitle);
             tvPeopleSummary = itemView.findViewById(R.id.tvPeopleSummary);
-            tvAddress = itemView.findViewById(R.id.tvAddress);
             tvDistance = itemView.findViewById(R.id.tvDistance);
             btnDetail = itemView.findViewById(R.id.btnDetail);
             btnAccept = itemView.findViewById(R.id.btnAccept);

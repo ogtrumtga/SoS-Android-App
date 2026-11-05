@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 2. Đăng nhập & Xác minh OTP 2 bước tách biệt (Chuẩn API /api/auth/request-otp & /verify-otp) -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
@@ -13,73 +12,35 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="24dp"
-        android:paddingTop="12dp"
+        android:paddingTop="16dp"
         android:paddingBottom="28dp">
 
-        <!-- Thanh điều hướng tối giản -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBack"
-                style="@style/Button.Icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:contentDescription="Quay lại"
-                app:icon="@drawable/ic_arrow_back" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/tvStep"
-                style="@style/Text.Tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bước 1 / 2" />
-        </LinearLayout>
-
-        <!-- ========================================================= -->
-        <!-- BƯỚC 1: CHỌN VAI TRÒ + NHẬP SĐT & HỌ TÊN + YÊU CẦU MÃ OTP -->
-        <!-- ========================================================= -->
+        <!-- Bước 1: Nhập SĐT + Chọn vai trò + Gửi mã OTP -->
         <LinearLayout
             android:id="@+id/layoutStepPhone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
             android:orientation="vertical">
 
             <TextView
                 style="@style/Text.Display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:text="Đăng nhập" />
 
             <TextView
                 style="@style/Text.Secondary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Xác thực không mật khẩu qua mã OTP gửi về Telegram." />
-
-            <!-- 1. Chọn vai trò TRƯỚC khi đăng nhập -->
-            <TextView
-                style="@style/Text.Overline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:text="VAI TRÒ TRUY CẬP" />
+                android:layout_marginTop="4dp"
+                android:text="Chọn vai trò và nhập số điện thoại" />
 
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/toggleRole"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="24dp"
                 app:checkedButton="@id/btnRoleUser"
                 app:selectionRequired="true"
                 app:singleSelection="true">
@@ -101,28 +62,12 @@
                     android:text="Đội cứu hộ" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
-            <TextView
-                android:id="@+id/tvRoleHint"
-                style="@style/Text.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Chế độ Người dân: Xem bản đồ cộng đồng và gửi tín hiệu SOS khẩn cấp." />
-
-            <!-- 2. Thông tin định danh -->
-            <TextView
-                style="@style/Text.Overline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="THÔNG TIN TÀI KHOẢN" />
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPhone"
                 style="@style/Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:hint="Số điện thoại"
                 app:endIconMode="clear_text">
 
@@ -135,110 +80,16 @@
                     android:text="0901234567" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilFullName"
-                style="@style/Input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="Họ và tên"
-                app:endIconMode="clear_text">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtFullName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPersonName"
-                    android:text="Nguyễn Văn An" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- 3. Liên kết Telegram -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/Text.Title"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Liên kết Telegram"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:id="@+id/tvTelegramBadge"
-                            style="@style/Text.Tag"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:backgroundTint="@color/green_soft"
-                            android:text="Đã liên kết"
-                            android:textColor="@color/green" />
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Kết nối với @SosRescueBot để nhận mã xác thực OTP qua ứng dụng Telegram." />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnOpenTelegram"
-                            style="@style/Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            android:minHeight="40dp"
-                            android:text="Hướng dẫn"
-                            android:textSize="13sp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnDevLinkTelegram"
-                            style="@style/Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:minHeight="40dp"
-                            android:text="Liên kết nhanh"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Nút gửi yêu cầu OTP (POST /api/auth/request-otp) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSendOtp"
                 style="@style/Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Nhận mã OTP qua Telegram" />
+                android:layout_marginTop="20dp"
+                android:text="Gửi mã OTP" />
         </LinearLayout>
 
-        <!-- ========================================================= -->
-        <!-- BƯỚC 2: XÁC MINH MÃ OTP 6 SỐ (Ban đầu ẩn, chỉ hiện sau Bước 1) -->
-        <!-- ========================================================= -->
+        <!-- Bước 2: Nhập mã OTP -->
         <LinearLayout
             android:id="@+id/layoutStepOtp"
             android:layout_width="match_parent"
@@ -246,76 +97,35 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBack"
+                style="@style/Button.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="-8dp"
+                android:contentDescription="Quay lại"
+                app:icon="@drawable/ic_arrow_back" />
+
             <TextView
                 style="@style/Text.Display"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Xác thực OTP" />
+                android:layout_marginTop="12dp"
+                android:text="Nhập mã OTP" />
 
             <TextView
                 android:id="@+id/tvOtpSentTo"
                 style="@style/Text.Secondary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Mã 6 chữ số đã được gửi tới Telegram của 0901234567 (hiệu lực 5 phút)." />
-
-            <!-- Tóm tắt tài khoản đang đăng nhập + nút đổi SĐT -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/bg_box"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="12dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvSelectedRoleSummary"
-                        style="@style/Text.Title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Người dân"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/tvSelectedUserSummary"
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Nguyễn Văn An • 0901234567" />
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnChangePhone"
-                    style="@style/Button.Text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Đổi SĐT" />
-            </LinearLayout>
-
-            <!-- 6 ô nhập OTP -->
-            <TextView
-                style="@style/Text.Overline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:text="MÃ XÁC THỰC 6 CHỮ SỐ" />
+                android:layout_marginTop="4dp"
+                android:text="Mã 6 số đã gửi tới 0901234567" />
 
             <LinearLayout
                 android:id="@+id/layoutOtp"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="24dp"
                 android:orientation="horizontal">
 
                 <EditText
@@ -408,18 +218,18 @@
                     android:textSize="20sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvAttemptsRemaining"
-                style="@style/Text.Caption"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmOtp"
+                style="@style/Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Mã xác thực được bảo mật an toàn • Còn 5 lần thử" />
+                android:layout_marginTop="20dp"
+                android:text="Xác nhận" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -429,7 +239,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Gửi lại mã sau 30 giây" />
+                    android:text="Gửi lại sau 30s" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnResend"
@@ -439,30 +249,6 @@
                     android:enabled="false"
                     android:text="Gửi lại mã" />
             </LinearLayout>
-
-            <!-- Nút xác thực OTP (POST /api/auth/verify-otp) -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnConfirmOtp"
-                style="@style/Button.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Xác thực &amp; Vào ứng dụng" />
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- Gợi ý gọi khẩn tối giản ở cuối trang -->
-        <TextView
-            style="@style/Text.Caption"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:gravity="center"
-            android:text="Mất kết nối mạng? Gọi khẩn cấp 114 (Cứu nạn) hoặc 115 (Y tế)." />
-
     </LinearLayout>
 </ScrollView>

@@ -1,6 +1,7 @@
 package com.javafinal.data;
 
 import com.javafinal.model.SosRequest;
+import com.javafinal.util.MapHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,13 +37,14 @@ public class MockDataRepository {
     private final String rescuerTeamId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     private final String rescuerTeamName = "Đội Cứu Hộ Phản Ứng Nhanh Quận 1";
 
-    // Vị trí GPS hiện tại của thiết bị
-    private double myLat = 10.776889;
-    private double myLng = 106.700806;
+    // Vị trí GPS hiện tại của thiết bị (Lê Lợi - Pasteur, Quận 1)
+    private double myLat = 10.774560;
+    private double myLng = 106.700420;
     private double myAccuracyM = 4.5;
 
-    private double rescuerBaseLat = 10.771000;
-    private double rescuerBaseLng = 106.695000;
+    // Trụ sở Đội cứu hộ (Trần Hưng Đạo - Nguyễn Thái Học, Quận 1)
+    private double rescuerBaseLat = 10.768020;
+    private double rescuerBaseLng = 106.695360;
     private double rescuerAccuracyM = 8.0;
 
     private final List<SosRequest> allSosList = new ArrayList<>();
@@ -64,7 +66,7 @@ public class MockDataRepository {
         allSosList.clear();
         notifications.clear();
 
-        // 1. Ca mẫu chuẩn trong tài liệu API (WAITING trong rescue_queue & PUBLIC trên bản đồ cộng đồng)
+        // 1. Ca mẫu chuẩn (Lê Thánh Tôn - Hai Bà Trưng, Quận 1)
         SosRequest sos1 = new SosRequest(
                 "2cc295a6-5723-4085-8dd8-1967ab544d31",
                 "f4139613-5ddd-4d6a-888c-f79629762632",
@@ -73,67 +75,72 @@ public class MockDataRepository {
                 SosRequest.TYPE_NGAP_LUT,
                 "Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển",
                 SosRequest.VISIBILITY_PUBLIC,
-                10.776889,
-                106.700806,
+                10.778250,
+                106.703420,
                 4.5,
                 SosRequest.STATUS_WAITING,
-                "09:21:34 • Hôm nay"
+                "09:21 • Hôm nay"
         );
-        sos1.addLog("09:21 • Đã phát tín hiệu cứu hộ khẩn cấp (Công khai)");
-        sos1.addLog("09:21 • Đã ghi nhận vị trí GPS (10.776889, 106.700806)");
-        sos1.addLog("09:21 • Đã gửi thông báo tới các đội cứu hộ trong khu vực");
+        sos1.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                rescuerBaseLat, rescuerBaseLng, 10.778250, 106.703420), false);
+        sos1.addLog("09:21 • Đã phát tín hiệu cứu hộ");
 
-        // 2. Ca cấp cứu y tế ở chế độ PRIVATE (Chỉ RESCUER thấy trong rescue_queue, ẩn trên public/map)
+        // 2. Ca cấp cứu y tế ở chế độ PRIVATE (Nguyễn Thị Minh Khai - Đinh Tiên Hoàng, Quận 1)
         SosRequest sos2 = new SosRequest(
                 "8b9104e2-3a19-4c22-9104-78ef9012ab34",
                 "c8192011-1122-4333-8444-556677889900",
                 "Lê Thị Hồng Nhung",
                 "0918223344",
                 SosRequest.TYPE_Y_TE,
-                "Người cao tuổi suy hô hấp cần hỗ trợ bình oxy và sơ tán gấp, hẻm ngập 1.2m",
+                "Người cao tuổi suy hô hấp cần hỗ trợ bình oxy, hẻm ngập 1.2m",
                 SosRequest.VISIBILITY_PRIVATE,
-                10.782400,
-                106.706200,
+                10.786850,
+                106.701150,
                 3.2,
                 SosRequest.STATUS_WAITING,
-                "09:15:10 • Hôm nay"
+                "09:15 • Hôm nay"
         );
-        sos2.addLog("09:15 • Đã phát tín hiệu cứu hộ khẩn cấp (Riêng tư)");
-        sos2.addLog("09:15 • Đã ghi nhận vị trí GPS (10.782400, 106.706200)");
+        sos2.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                rescuerBaseLat, rescuerBaseLng, 10.786850, 106.701150), false);
+        sos2.addLog("09:15 • Đã phát tín hiệu cứu hộ");
 
-        // 3. Ca mắc kẹt do cây đổ / ngập (PUBLIC)
+        // 3. Ca mắc kẹt do cây đổ / ngập (Cô Giang - Hồ Hảo Hớn, Quận 1)
         SosRequest sos3 = new SosRequest(
                 "5d4412a9-7c88-4100-b222-334455667788",
                 "d9991111-2222-3333-4444-555566667777",
                 "Phạm Minh Tuấn",
                 "0987654321",
                 SosRequest.TYPE_MAC_KET,
-                "Cây lớn đổ chắn cửa sắt tầng trệt, nước đang dâng cao, có 3 người bên trong",
+                "Cây đổ chắn cửa tầng trệt, nước đang dâng cao, có 3 người bên trong",
                 SosRequest.VISIBILITY_PUBLIC,
-                10.769500,
-                106.698500,
+                10.763250,
+                106.692850,
                 5.0,
                 SosRequest.STATUS_WAITING,
-                "09:05:42 • Hôm nay"
+                "09:05 • Hôm nay"
         );
-        sos3.addLog("09:05 • Đã phát tín hiệu cứu hộ khẩn cấp (Công khai)");
+        sos3.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                rescuerBaseLat, rescuerBaseLng, 10.763250, 106.692850), false);
+        sos3.addLog("09:05 • Đã phát tín hiệu cứu hộ");
 
-        // 4. Ca thiếu nhu yếu phẩm & nước uống (PUBLIC)
+        // 4. Ca thiếu nhu yếu phẩm & nước uống (Nguyễn Thị Minh Khai - Cống Quỳnh, Quận 1)
         SosRequest sos4 = new SosRequest(
                 "9f001122-3344-5566-7788-99aabbccddee",
                 "e1234567-89ab-cdef-0123-456789abcdef",
                 "Hoàng Quốc Việt",
                 "0933557799",
                 SosRequest.TYPE_NHU_YEU_PHAM,
-                "Khu trọ bị cô lập từ đêm qua, hết nước sạch và sữa cho trẻ nhỏ",
+                "Khu trọ bị cô lập, thiếu nước sạch và sữa cho trẻ nhỏ",
                 SosRequest.VISIBILITY_PUBLIC,
-                10.786100,
-                106.691200,
+                10.773850,
+                106.688250,
                 6.0,
                 SosRequest.STATUS_WAITING,
-                "08:45:00 • Hôm nay"
+                "08:45 • Hôm nay"
         );
-        sos4.addLog("08:45 • Đã phát tín hiệu cứu hộ khẩn cấp (Công khai)");
+        sos4.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                rescuerBaseLat, rescuerBaseLng, 10.773850, 106.688250), false);
+        sos4.addLog("08:45 • Đã phát tín hiệu cứu hộ");
 
         allSosList.add(sos1);
         allSosList.add(sos2);
@@ -249,6 +256,8 @@ public class MockDataRepository {
                 SosRequest.STATUS_WAITING,
                 timeStr
         );
+        created.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                rescuerBaseLat, rescuerBaseLng, lat, lng), false);
         created.addLog(timeStr + " • Đã khởi tạo yêu cầu cứu hộ (" + created.getVisibilityLabel() + ")");
         created.addLog(timeStr + " • Đã lưu tọa độ GPS ("
                 + String.format(Locale.US, "%.6f, %.6f", lat, lng) + ")");
@@ -267,14 +276,21 @@ public class MockDataRepository {
         if (sos == null) return false;
         String now = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
         sos.setStatus(SosRequest.STATUS_ACCEPTED);
+        if (sos.getRoutePoints().isEmpty()) {
+            sos.setRoutePoints(MapHelper.computeStreetGraphRoute(
+                    rescuerBaseLat, rescuerBaseLng, sos.getVictimLat(), sos.getVictimLng()), false);
+        }
+        List<double[]> pts = sos.getRoutePoints();
+        double startLat = pts.isEmpty() ? rescuerBaseLat : pts.get(0)[0];
+        double startLng = pts.isEmpty() ? rescuerBaseLng : pts.get(0)[1];
         sos.assignRescuer(
                 rescuerTeamId,
                 rescuerUserId,
                 rescuerFullName,
                 rescuerPhone,
                 rescuerTeamName,
-                rescuerBaseLat,
-                rescuerBaseLng,
+                startLat,
+                startLng,
                 rescuerAccuracyM
         );
         sos.addLog(now + " • " + rescuerTeamName + " (" + rescuerFullName + ") đã tiếp nhận yêu cầu");

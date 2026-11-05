@@ -22,7 +22,6 @@ import com.javafinal.util.NavigationHelper;
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.android.maps.MapView;
 
-import java.util.List;
 import java.util.Locale;
 
 public class SosDetailActivity extends AppCompatActivity {
@@ -51,47 +50,31 @@ public class SosDetailActivity extends AppCompatActivity {
         repo.setLastViewedSos(currentSos);
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setSubtitle(currentSos.getShortId() + " • " + currentSos.getStatusLabel());
+        toolbar.setTitle("SOS " + currentSos.getShortId());
         toolbar.setNavigationOnClickListener(v -> finish());
 
         TextView tvPrivacyLevel = findViewById(R.id.tvPrivacyLevel);
-        TextView tvUrgencyLevel = findViewById(R.id.tvUrgencyLevel);
         TextView tvIncidentTitle = findViewById(R.id.tvIncidentTitle);
         TextView tvCreatedAt = findViewById(R.id.tvCreatedAt);
-
-        TextView tvAccuracy = findViewById(R.id.tvAccuracy);
         TextView tvAddress = findViewById(R.id.tvAddress);
         TextView tvCoordinates = findViewById(R.id.tvCoordinates);
-
         TextView tvVictimContact = findViewById(R.id.tvVictimContact);
-        TextView tvCommandNote = findViewById(R.id.tvCommandNote);
 
         MaterialButton btnCallVictim = findViewById(R.id.btnCallVictim);
         MaterialButton btnSmsVictim = findViewById(R.id.btnSmsVictim);
         MaterialButton btnAcceptMission = findViewById(R.id.btnAcceptMission);
 
-        tvPrivacyLevel.setText(currentSos.getVisibilityLabel() + " • " + currentSos.getStatusLabel());
-        tvUrgencyLevel.setText("Sự cố: " + currentSos.getEmergencyTypeLabel());
+        tvPrivacyLevel.setText(currentSos.getEmergencyTypeLabel() + " • " + currentSos.getVisibilityLabel());
         tvIncidentTitle.setText(currentSos.getDescription());
-        tvCreatedAt.setText("Thời gian gửi: " + currentSos.getCreatedAt());
+        tvCreatedAt.setText(currentSos.getCreatedAt());
 
-        tvAccuracy.setText(String.format(Locale.US, "±%.1fm", currentSos.getVictimAccuracyM()));
-        tvAddress.setText(String.format(Locale.US, "Tọa độ: %.6f, %.6f",
-                currentSos.getVictimLat(), currentSos.getVictimLng()));
+        tvAddress.setText(String.format(Locale.US, "%.5f, %.5f (±%.1fm)",
+                currentSos.getVictimLat(), currentSos.getVictimLng(), currentSos.getVictimAccuracyM()));
 
         double distKm = currentSos.getDistanceKmFrom(repo.getRescuerBaseLat(), repo.getRescuerBaseLng());
-        tvCoordinates.setText(String.format(Locale.US,
-                "Khoảng cách tới vị trí đội của bạn: ~%.1f km", distKm));
+        tvCoordinates.setText(String.format(Locale.US, "Cách ~%.1f km", distKm));
 
         tvVictimContact.setText(currentSos.getRequesterName() + " • " + currentSos.getRequesterPhone());
-
-        List<String> logs = currentSos.getLogs();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < logs.size(); i++) {
-            sb.append("• ").append(logs.get(i));
-            if (i < logs.size() - 1) sb.append("\n");
-        }
-        tvCommandNote.setText(sb.toString());
 
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
@@ -103,12 +86,15 @@ public class SosDetailActivity extends AppCompatActivity {
                 MapHelper.drawRescueRoute(
                         this,
                         map,
+                        currentSos,
                         repo.getRescuerBaseLat(),
                         repo.getRescuerBaseLng(),
-                        currentSos.getVictimLat(),
-                        currentSos.getVictimLng(),
-                        "Đội: " + repo.getRescuerTeamName(),
-                        "Người gửi: " + currentSos.getRequesterName()
+                        repo.getRescuerTeamName(),
+                        currentSos.getRequesterName(),
+                        () -> {
+                            double updatedDist = currentSos.getRemainingRouteDistanceKm();
+                            tvCoordinates.setText(String.format(Locale.US, "Cách ~%.1f km", updatedDist));
+                        }
                 );
             });
         });
@@ -120,8 +106,7 @@ public class SosDetailActivity extends AppCompatActivity {
                 NavigationHelper.sendSms(
                         this,
                         currentSos.getRequesterPhone(),
-                        "[" + repo.getRescuerTeamName() + "] Chúng tôi đã nhận được tọa độ SOS "
-                                + currentSos.getShortId() + " và đang chuẩn bị tiếp cận."
+                        "Đội cứu hộ đã nhận được vị trí SOS của bạn và đang chuẩn bị tiếp cận."
                 ));
 
         btnAcceptMission.setOnClickListener(v -> {
@@ -129,10 +114,9 @@ public class SosDetailActivity extends AppCompatActivity {
             if (busyMission != null && !busyMission.getId().equals(currentSos.getId())) {
                 NavigationHelper.showConfirmSheet(
                         this,
-                        "ĐANG CÓ CA CỨU HỘ",
-                        "Đội đang xử lý một ca khác",
-                        "Đội của bạn đang xử lý ca " + busyMission.getShortId()
-                                + ". Vui lòng hoàn thành ca hiện tại trước khi nhận ca mới.",
+                        null,
+                        "Đội đang xử lý ca khác",
+                        busyMission.getEmergencyTypeLabel() + " • " + busyMission.getStatusLabel(),
                         "Mở ca hiện tại",
                         false,
                         () -> {

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 7. Trang chủ Đội cứu hộ (RESCUER) - Chuẩn API GET /api/rescuer/queue & GET /api/rescuer/my-active -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,44 +8,23 @@
     android:background="@color/white"
     android:orientation="vertical">
 
-    <!-- Top bar: Thông tin Đội cứu hộ (/api/rescuer/teams & /api/auth/me) -->
+    <!-- Top bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="20dp"
-        android:paddingVertical="12dp">
+        android:paddingVertical="10dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvTeamHeader"
+            style="@style/Text.Headline"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvDutyBadge"
-                style="@style/Text.Overline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ĐỘI CỨU HỘ • TRỰC CHIẾN" />
-
-            <TextView
-                style="@style/Text.Headline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Điều phối cứu hộ"
-                android:textSize="19sp" />
-
-            <TextView
-                android:id="@+id/tvTeamHeader"
-                style="@style/Text.Caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Đội Cứu Hộ Phản Ứng Nhanh Quận 1 • Trần Cứu Hộ" />
-        </LinearLayout>
+            android:text="Điều phối cứu hộ"
+            android:textSize="18sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEmergencyAlert"
@@ -67,63 +45,50 @@
 
     <View style="@style/Divider" />
 
-    <!-- Card trạng thái ca hiện tại của đội (GET /api/rescuer/my-active - RB05) + Thống kê rescue_queue -->
+    <!-- Ca hiện tại + Thống kê -->
     <com.google.android.material.card.MaterialCardView
         style="@style/Card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="14dp">
+        android:layout_marginTop="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="12dp">
 
             <LinearLayout
+                android:id="@+id/layoutActiveMission"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvActiveMissionTitle"
+                    style="@style/Text.Title"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvActiveMissionTitle"
-                        style="@style/Text.Title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Ca cứu hộ hiện tại"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/tvActiveMissionSub"
-                        style="@style/Text.Caption"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Đang sẵn sàng nhận nhiệm vụ mới" />
-                </LinearLayout>
+                    android:text="● Đang xử lý ca cứu hộ"
+                    android:textColor="@color/red"
+                    android:textSize="13.5sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenActiveMission"
                     style="@style/Button.Small"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Mở ca"
-                    android:visibility="gone" />
+                    android:layout_height="34dp"
+                    android:text="Mở ca" />
             </LinearLayout>
 
-            <!-- Thống kê hàng đợi cứu hộ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:orientation="horizontal">
 
                 <LinearLayout
@@ -134,7 +99,7 @@
                     android:background="@drawable/bg_box"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="10dp">
+                    android:paddingVertical="8dp">
 
                     <TextView
                         android:id="@+id/tvWaitingCount"
@@ -142,7 +107,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="4"
-                        android:textSize="18sp" />
+                        android:textSize="17sp" />
 
                     <TextView
                         style="@style/Text.Caption"
@@ -160,7 +125,7 @@
                     android:background="@drawable/bg_box"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="10dp">
+                    android:paddingVertical="8dp">
 
                     <TextView
                         android:id="@+id/tvHighPriorityCount"
@@ -168,7 +133,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="3"
-                        android:textSize="18sp" />
+                        android:textSize="17sp" />
 
                     <TextView
                         style="@style/Text.Caption"
@@ -185,7 +150,7 @@
                     android:background="@drawable/bg_box"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:paddingVertical="10dp">
+                    android:paddingVertical="8dp">
 
                     <TextView
                         android:id="@+id/tvScanRadius"
@@ -194,7 +159,7 @@
                         android:layout_height="wrap_content"
                         android:text="1"
                         android:textColor="@color/red"
-                        android:textSize="18sp" />
+                        android:textSize="17sp" />
 
                     <TextView
                         style="@style/Text.Caption"
@@ -207,7 +172,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Bộ lọc theo sự cố và chế độ hiển thị -->
+    <!-- Bộ lọc -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -245,7 +210,7 @@
                 style="@style/Chip.Minimal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cấp cứu y tế" />
+                android:text="Y tế" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPrivate"
@@ -263,7 +228,6 @@
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 
-    <!-- Danh sách yêu cầu SOS trong rescue_queue -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSosRequests"
         android:layout_width="match_parent"
@@ -279,7 +243,6 @@
 
     <View style="@style/Divider" />
 
-    <!-- Bottom navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         style="@style/BottomNav.Minimal"

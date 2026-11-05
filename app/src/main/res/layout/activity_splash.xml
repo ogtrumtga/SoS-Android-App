@@ -1,89 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 1. Splash Screen - Kiểm tra GET /health & GET /api/auth/me -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="32dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="32dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
 
-        <!-- Vùng thương hiệu tối giản ở trung tâm -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+        <TextView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_circle"
+            android:backgroundTint="@color/red"
+            android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:orientation="vertical">
+            android:letterSpacing="0.04"
+            android:text="SOS"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
 
-            <TextView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/bg_circle"
-                android:backgroundTint="@color/red"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:letterSpacing="0.04"
-                android:text="SOS"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/tvAppName"
-                style="@style/Text.Display"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="SOS Rescue" />
-
-            <TextView
-                style="@style/Text.Secondary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Hệ thống cứu hộ &amp; định vị khẩn cấp" />
-        </LinearLayout>
-
-        <!-- Trạng thái khởi tạo tối giản ở đáy màn hình -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tvAppName"
+            style="@style/Text.Display"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:layout_marginTop="16dp"
+            android:text="SOS Rescue" />
 
-            <TextView
-                android:id="@+id/tvSplashStatus"
-                style="@style/Text.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đang kiểm tra kết nối máy chủ..."
-                android:textSize="14sp" />
+        <TextView
+            style="@style/Text.Secondary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Cứu hộ khẩn cấp" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvSplashSubStatus"
-                style="@style/Text.Caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Đang đồng bộ dữ liệu hệ thống" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progressLinear"
-                android:layout_width="160dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:progress="35"
-                app:indicatorColor="@color/ink"
-                app:trackColor="@color/line"
-                app:trackCornerRadius="2dp"
-                app:trackThickness="3dp" />
-        </LinearLayout>
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressLinear"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:progress="40"
+            app:indicatorColor="@color/ink"
+            app:trackColor="@color/line"
+            app:trackCornerRadius="2dp"
+            app:trackThickness="3dp" />
     </LinearLayout>
 </LinearLayout>
