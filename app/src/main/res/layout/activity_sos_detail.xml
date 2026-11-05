@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 8. Chi tiết yêu cầu SOS cho Đội cứu hộ (Chuẩn API GET /api/sos/{id} & POST /accept) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar.Minimal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:subtitle="#2CC295A6 • Đang chờ tiếp nhận"
+        app:title="Chi tiết yêu cầu SOS" />
+
+    <View style="@style/Divider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 1. Trạng thái & Phân loại -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_box"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvPrivacyLevel"
+                        style="@style/Text.Overline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CÔNG KHAI • ĐANG CHỜ TIẾP NHẬN"
+                        android:textColor="@color/red" />
+
+                    <TextView
+                        android:id="@+id/tvUrgencyLevel"
+                        style="@style/Text.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Sự cố: Ngập lụt"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 2. Mô tả tình trạng -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Text.Overline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MÔ TẢ TÌNH TRẠNG" />
+
+                    <TextView
+                        android:id="@+id/tvIncidentTitle"
+                        style="@style/Text.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:lineSpacingExtra="2dp"
+                        android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCreatedAt"
+                        style="@style/Text.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Thời gian gửi: 09:21:34 • Hôm nay" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 3. Vị trí GPS thực tế -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <org.maplibre.android.maps.MapView
+                        android:id="@+id/mapView"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp" />
+
+                    <View style="@style/Divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                style="@style/Text.Overline"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="TỌA ĐỘ HIỆN TRƯỜNG" />
+
+                            <TextView
+                                android:id="@+id/tvAccuracy"
+                                style="@style/Text.Tag"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="±4.5m" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvAddress"
+                            style="@style/Text.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Tọa độ: 10.776889, 106.700806"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvCoordinates"
+                            style="@style/Text.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Khoảng cách tới đội của bạn: ~0.9 km" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4. Thông tin người gửi -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Text.Overline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NGƯỜI GỬI YÊU CẦU" />
+
+                    <TextView
+                        android:id="@+id/tvVictimContact"
+                        style="@style/Text.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Nguyễn Văn An • 0901234567" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCallVictim"
+                            style="@style/Button.Primary"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:minHeight="44dp"
+                            android:text="Gọi điện"
+                            android:textSize="13.5sp"
+                            app:icon="@drawable/ic_call"
+                            app:iconGravity="textStart"
+                            app:iconSize="18dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSmsVictim"
+                            style="@style/Button.Secondary"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:minHeight="44dp"
+                            android:text="Nhắn SMS"
+                            android:textSize="13.5sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 5. Nhật ký hoạt động -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Text.Overline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NHẬT KÝ HOẠT ĐỘNG" />
+
+                    <TextView
+                        android:id="@+id/tvCommandNote"
+                        style="@style/Text.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="• 09:21 • Đã phát tín hiệu cứu hộ"
+                        android:textColor="@color/ink_secondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </ScrollView>
+
+    <View style="@style/Divider" />
+
+    <!-- Thanh hành động cố định dưới cùng -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAcceptMission"
+            style="@style/Button.Sos"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="Tiếp nhận ca cứu hộ" />
+    </LinearLayout>
+</LinearLayout>

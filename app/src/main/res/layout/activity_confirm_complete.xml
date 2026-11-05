@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 10. Xác nhận hoàn thành ca cứu hộ (Chuẩn API POST /api/rescuer/sos/{id}/complete, RB09 & RB05) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar.Minimal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:subtitle="Đóng phiên cứu hộ và cập nhật kết quả"
+        app:title="Xác nhận hoàn thành ca" />
+
+    <View style="@style/Divider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 1. Tóm tắt phiên cứu hộ cần đóng -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/Text.Overline"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="MÃ YÊU CẦU" />
+
+                            <TextView
+                                android:id="@+id/tvSosCode"
+                                style="@style/Text.Title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="#2CC295A6 • Công khai" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvInterventionTime"
+                            style="@style/Text.Tag"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="@color/green_soft"
+                            android:text="Sẵn sàng hoàn tất"
+                            android:textColor="@color/green" />
+                    </LinearLayout>
+
+                    <View
+                        style="@style/Divider"
+                        android:layout_marginVertical="14dp" />
+
+                    <TextView
+                        android:id="@+id/tvEmergencyNature"
+                        style="@style/Text.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Loại sự cố: Ngập lụt" />
+
+                    <TextView
+                        android:id="@+id/tvAddress"
+                        style="@style/Text.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Mô tả: Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" />
+
+                    <TextView
+                        android:id="@+id/tvVictimStatus"
+                        style="@style/Text.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Người gửi: Nguyễn Văn An • 0901234567"
+                        android:textColor="@color/ink" />
+
+                    <TextView
+                        android:id="@+id/tvTeamSummary"
+                        style="@style/Text.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Đội thực hiện: Đội Cứu Hộ Phản Ứng Nhanh Quận 1 (Trần Cứu Hộ)" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2. Thông tin khi hoàn tất ca cứu hộ -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        style="@style/Text.Overline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="THÔNG TIN HOÀN TẤT" />
+
+                    <TextView
+                        android:id="@+id/tvHandoverPoint"
+                        style="@style/Text.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="4dp"
+                        android:text="• Đánh dấu phiên cứu hộ đã hoàn thành an toàn.\n• Tự động ngắt chia sẻ vị trí trực tiếp để bảo mật quyền riêng tư.\n• Đội cứu hộ chuyển sang trạng thái sẵn sàng nhận ca mới.\n• Gửi thông báo hoàn tất tới người gửi yêu cầu." />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 3. Xác nhận đóng phiên -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbConfirmComplete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Tôi xác nhận đã hỗ trợ nạn nhân đến nơi an toàn và hoàn tất ca cứu hộ này."
+                        android:textColor="@color/ink"
+                        android:textSize="13.5sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Nút hoàn tất -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCompleteMission"
+                style="@style/Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="20dp"
+                android:text="Xác nhận hoàn thành"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackToScene"
+                style="@style/Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:text="Quay lại màn hình bản đồ" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

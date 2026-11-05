@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 3. Trang chủ Người dân (USER) - Chuẩn API GET /api/sos/public/map & GET /api/sos/my-active -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <!-- Top bar tối giản -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvGpsStatus"
+                style="@style/Text.Overline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BẢN ĐỒ CỘNG ĐỒNG" />
+
+            <TextView
+                android:id="@+id/tvUserGreeting"
+                style="@style/Text.Headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Xin chào, Nguyễn Văn An"
+                android:textSize="19sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNotifications"
+            style="@style/Button.Icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Thông báo"
+            app:icon="@drawable/ic_notifications" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnProfile"
+            style="@style/Button.Icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Hồ sơ cá nhân"
+            app:icon="@drawable/ic_person" />
+    </LinearLayout>
+
+    <View style="@style/Divider" />
+
+    <!-- Khu vực bản đồ -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- MapLibre MapView -->
+        <org.maplibre.android.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Thanh lọc & Banner SOS đang hoạt động -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp">
+
+            <!-- Card hiển thị phiên SOS đang hoạt động (GET /api/sos/my-active - RB04) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMyActiveSos"
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="@color/white"
+                app:strokeColor="@color/red"
+                app:strokeWidth="1.5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvActiveSosStatus"
+                            style="@style/Text.Overline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="● YÊU CẦU CỨU HỘ ĐANG MỞ"
+                            android:textColor="@color/red" />
+
+                        <TextView
+                            android:id="@+id/tvActiveSosSummary"
+                            style="@style/Text.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="#2CC295A6 • Đang chờ tiếp nhận"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTrackActiveSos"
+                        style="@style/Button.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Theo dõi" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Bộ lọc sự cố -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipSpacingHorizontal="6dp"
+                    app:selectionRequired="true"
+                    app:singleLine="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipAll"
+                        style="@style/Chip.Minimal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Tất cả" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipBoat"
+                        style="@style/Chip.Minimal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ngập lụt" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMedical"
+                        style="@style/Chip.Minimal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Y tế" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFood"
+                        style="@style/Chip.Minimal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nhu yếu phẩm" />
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- Nút điều khiển bản đồ -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabLayers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Đổi lớp bản đồ"
+                app:backgroundTint="@color/white"
+                app:elevation="2dp"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/ic_layers"
+                app:tint="@color/ink" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fabMyLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:contentDescription="Vị trí GPS của tôi"
+                app:backgroundTint="@color/white"
+                app:elevation="2dp"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/ic_my_location"
+                app:tint="@color/ink" />
+        </LinearLayout>
+
+        <!-- Khu vực nút gửi SOS dưới cùng -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvMyLocation"
+                style="@style/Text.Tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="@color/white"
+                android:text="GPS: 10.7768, 106.7008 (±4.5m)"
+                android:textColor="@color/ink" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSos"
+                style="@style/Button.Sos"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Gửi yêu cầu cứu hộ SOS"
+                android:textSize="16sp"
+                app:icon="@drawable/ic_campaign"
+                app:iconGravity="textStart" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <View style="@style/Divider" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        style="@style/BottomNav.Minimal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:menu="@menu/menu_bottom_user" />
+</LinearLayout>
