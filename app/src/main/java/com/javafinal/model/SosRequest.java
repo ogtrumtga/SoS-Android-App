@@ -1,13 +1,16 @@
 package com.javafinal.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Model chuẩn khớp với cấu trúc dữ liệu bảng sos_requests, location_current,
- * location_history, sos_logs trong đặc tả BANG_API_VA_LUONG_HOAT_DONG.md.
+ * Model ánh xạ bảng {@code sos_requests} trong CSDL (so_do_csdl.jpg)
+ * và kết quả trả về từ các API SOS & Rescuer (#07, #08, #10, #16, #17, #18, #19, #20, #21)
+ * trong đặc tả BANG_API_VA_LUONG_HOAT_DONG.md.
  */
 public class SosRequest implements Serializable {
 
@@ -34,27 +37,76 @@ public class SosRequest implements Serializable {
     public static final String END_RESCUER_COMPLETED = "RESCUER_COMPLETED";
     public static final String END_USER_CANCELLED = "USER_CANCELLED";
 
-    private String id; // UUID chuẩn: VD "2cc295a6-5723-4085-8dd8-1967ab544d31"
+    /** PK uuid - Hỗ trợ cả "id" (bảng sos_requests) và "sos_id" (API queue/active) */
+    @SerializedName(value = "id", alternate = {"sos_id"})
+    private String id;
+
+    /** FK uuid -> users.id */
+    @SerializedName("requester_id")
     private String requesterId;
+
     private String requesterName;
     private String requesterPhone;
 
+    /** FK uuid -> rescue_teams.team_id */
+    @SerializedName("team_id")
     private String teamId;
+
+    @SerializedName("rescuer_id")
     private String rescuerId;
+
     private String rescuerName;
     private String rescuerPhone;
     private String teamName;
 
+    /** FK uuid -> emergency_types.id (CSDL so_do_csdl.jpg) */
+    @SerializedName("emergency_type_id")
+    private String emergencyTypeId;
+
+    /** Mã loại khẩn cấp chuẩn ("NGAP_LUT", "Y_TE", "MAC_KET", ...) */
+    @SerializedName("emergency_type")
     private String emergencyType;
+
+    /** text - Mô tả chi tiết tình trạng hiện trường */
+    @SerializedName("description")
     private String description;
+
+    /** varchar - Chế độ hiển thị ("PUBLIC" hoặc "PRIVATE") */
+    @SerializedName("visibility")
     private String visibility;
+
+    /** varchar - Trạng thái cứu hộ ("WAITING", "ACCEPTED", "RESCUING", "ARRIVED", "COMPLETED", "CANCELLED") */
+    @SerializedName("status")
     private String status;
+
+    /** varchar - Lý do kết thúc ("RESCUER_COMPLETED", "USER_CANCELLED") */
+    @SerializedName("end_reason")
     private String endReason;
+
+    /** timestamptz - Thời điểm khởi tạo */
+    @SerializedName("created_at")
     private String createdAt;
 
+    /** timestamptz - Thời điểm cập nhật gần nhất (CSDL so_do_csdl.jpg) */
+    @SerializedName("updated_at")
+    private String updatedAt;
+
     // Tọa độ khởi tạo ban đầu
+    @SerializedName("initial_lat")
     private double initialLat;
+
+    @SerializedName("initial_lng")
     private double initialLng;
+
+    // Đối tượng lồng nhau trả về từ API #08, #16, #17
+    @SerializedName("requester")
+    private RequesterInfo requester;
+
+    @SerializedName("rescuer")
+    private RescuerInfo rescuer;
+
+    @SerializedName("locations")
+    private LocationsPair locations;
 
     // Bảng location_current (VICTIM & RESCUER)
     private double victimLat;
@@ -67,11 +119,15 @@ public class SosRequest implements Serializable {
 
     // Nhật ký kiểm toán sos_logs (GET /api/sos/{id}/logs)
     private final List<String> logs = new ArrayList<>();
+    private final List<SosLog> auditLogs = new ArrayList<>();
 
     // Lộ trình đường đi thực tế trên bản đồ (danh sách các điểm [lat, lng] theo đường giao thông)
     private final List<double[]> routePoints = new ArrayList<>();
     private int routeStepIndex = 0;
     private boolean osrmLoaded = false;
+
+    public SosRequest() {
+    }
 
     public SosRequest(
             String id,
@@ -101,6 +157,44 @@ public class SosRequest implements Serializable {
         this.victimAccuracyM = victimAccuracyM;
         this.status = status;
         this.createdAt = createdAt;
+        this.updatedAt = createdAt;
+    }
+
+    /**
+     * Đồng bộ dữ liệu từ các object lồng nhau ({@code requester}, {@code rescuer}, {@code locations})
+     * sau khi parse JSON từ API (#08, #16, #17) vào các trường phẳng phục vụ UI.
+     */
+    public void syncFromNestedApiObjects() {
+        if (requester != null) {
+            if (requester.getId() != null) this.requesterId = requester.getId();
+            if (requester.getFullName() != null) this.requesterName = requester.getFullName();
+            if (requester.getPhone() != null) this.requesterPhone = requester.getPhone();
+        }
+        if (rescuer != null) {
+            if (rescuer.getId() != null) this.rescuerId = rescuer.getId();
+            if (rescuer.getFullName() != null) this.rescuerName = rescuer.getFullName();
+            if (rescuer.getPhone() != null) this.rescuerPhone = rescuer.getPhone();
+            if (rescuer.getTeamName() != null) this.teamName = rescuer.getTeamName();
+            if (rescuer.getTeamId() != null) this.teamId = rescuer.getTeamId();
+        }
+        if (locations != null) {
+            LocationCurrent victimLoc = locations.getVictim();
+            if (victimLoc != null) {
+                this.victimLat = victimLoc.getLat();
+                this.victimLng = victimLoc.getLng();
+                this.victimAccuracyM = victimLoc.getAccuracyM();
+            }
+            LocationCurrent rescuerLoc = locations.getRescuer();
+            if (rescuerLoc != null) {
+                this.rescuerLat = rescuerLoc.getLat();
+                this.rescuerLng = rescuerLoc.getLng();
+                this.rescuerAccuracyM = rescuerLoc.getAccuracyM();
+            }
+        }
+        if (this.victimLat == 0 && this.initialLat != 0) {
+            this.victimLat = this.initialLat;
+            this.victimLng = this.initialLng;
+        }
     }
 
     public void assignRescuer(
@@ -121,6 +215,7 @@ public class SosRequest implements Serializable {
         this.rescuerLat = rescuerLat;
         this.rescuerLng = rescuerLng;
         this.rescuerAccuracyM = rescuerAccuracyM;
+        this.rescuer = new RescuerInfo(rescuerId, rescuerName, rescuerPhone, teamName, teamId);
     }
 
     public void clearRescuer() {
@@ -129,6 +224,7 @@ public class SosRequest implements Serializable {
         this.rescuerName = null;
         this.rescuerPhone = null;
         this.teamName = null;
+        this.rescuer = null;
         this.routeStepIndex = 0;
     }
 
@@ -190,8 +286,8 @@ public class SosRequest implements Serializable {
             this.rescuerLat = pt[0];
             this.rescuerLng = pt[1];
         } else {
-            this.rescuerLat = this.victimLat;
-            this.rescuerLng = this.victimLng;
+            this.rescuerLat = getVictimLat();
+            this.rescuerLng = getVictimLng();
         }
     }
 
@@ -211,7 +307,7 @@ public class SosRequest implements Serializable {
             }
             return Math.round(totalKm * 10.0) / 10.0;
         }
-        return getDistanceKmFrom(rescuerLat, rescuerLng);
+        return getDistanceKmFrom(getRescuerLat(), getRescuerLng());
     }
 
     public static double computeHaversineKm(double lat1, double lng1, double lat2, double lng2) {
@@ -230,6 +326,17 @@ public class SosRequest implements Serializable {
 
     public List<String> getLogs() {
         return logs;
+    }
+
+    public List<SosLog> getAuditLogs() {
+        return auditLogs;
+    }
+
+    public void setAuditLogs(List<SosLog> items) {
+        this.auditLogs.clear();
+        if (items != null) {
+            this.auditLogs.addAll(items);
+        }
     }
 
     public String getShortId() {
@@ -272,11 +379,11 @@ public class SosRequest implements Serializable {
      * Tọa độ làm tròn 2 chữ số thập phân (~1km) dùng cho GET /api/sos/public/map
      */
     public double getAreaLat() {
-        return Math.round(victimLat * 100.0) / 100.0;
+        return Math.round(getVictimLat() * 100.0) / 100.0;
     }
 
     public double getAreaLng() {
-        return Math.round(victimLng * 100.0) / 100.0;
+        return Math.round(getVictimLng() * 100.0) / 100.0;
     }
 
     public double getDistanceKmFrom(double lat, double lng) {
@@ -293,7 +400,7 @@ public class SosRequest implements Serializable {
                 return Math.round(totalKm * 10.0) / 10.0;
             }
         }
-        double straightKm = computeHaversineKm(lat, lng, victimLat, victimLng);
+        double straightKm = computeHaversineKm(lat, lng, getVictimLat(), getVictimLng());
         return Math.round((straightKm * 1.3) * 10.0) / 10.0;
     }
 
@@ -305,11 +412,25 @@ public class SosRequest implements Serializable {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getRequesterId() {
+        if (requesterId == null && requester != null) {
+            return requester.getId();
+        }
         return requesterId;
     }
 
+    public void setRequesterId(String requesterId) {
+        this.requesterId = requesterId;
+    }
+
     public String getRequesterName() {
+        if (requesterName == null && requester != null) {
+            return requester.getFullName();
+        }
         return requesterName;
     }
 
@@ -318,27 +439,77 @@ public class SosRequest implements Serializable {
     }
 
     public String getRequesterPhone() {
+        if (requesterPhone == null && requester != null) {
+            return requester.getPhone();
+        }
         return requesterPhone;
     }
 
+    public void setRequesterPhone(String requesterPhone) {
+        this.requesterPhone = requesterPhone;
+    }
+
     public String getTeamId() {
+        if (teamId == null && rescuer != null) {
+            return rescuer.getTeamId();
+        }
         return teamId;
     }
 
+    public void setTeamId(String teamId) {
+        this.teamId = teamId;
+    }
+
     public String getRescuerId() {
+        if (rescuerId == null && rescuer != null) {
+            return rescuer.getId();
+        }
         return rescuerId;
     }
 
+    public void setRescuerId(String rescuerId) {
+        this.rescuerId = rescuerId;
+    }
+
     public String getRescuerName() {
+        if (rescuerName == null && rescuer != null) {
+            return rescuer.getFullName();
+        }
         return rescuerName;
     }
 
+    public void setRescuerName(String rescuerName) {
+        this.rescuerName = rescuerName;
+    }
+
     public String getRescuerPhone() {
+        if (rescuerPhone == null && rescuer != null) {
+            return rescuer.getPhone();
+        }
         return rescuerPhone;
     }
 
+    public void setRescuerPhone(String rescuerPhone) {
+        this.rescuerPhone = rescuerPhone;
+    }
+
     public String getTeamName() {
+        if (teamName == null && rescuer != null) {
+            return rescuer.getTeamName();
+        }
         return teamName;
+    }
+
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
+    }
+
+    public String getEmergencyTypeId() {
+        return emergencyTypeId;
+    }
+
+    public void setEmergencyTypeId(String emergencyTypeId) {
+        this.emergencyTypeId = emergencyTypeId;
     }
 
     public String getEmergencyType() {
@@ -385,15 +556,41 @@ public class SosRequest implements Serializable {
         return createdAt;
     }
 
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public double getInitialLat() {
         return initialLat;
+    }
+
+    public void setInitialLat(double initialLat) {
+        this.initialLat = initialLat;
     }
 
     public double getInitialLng() {
         return initialLng;
     }
 
+    public void setInitialLng(double initialLng) {
+        this.initialLng = initialLng;
+    }
+
     public double getVictimLat() {
+        if (victimLat == 0 && locations != null && locations.getVictim() != null) {
+            return locations.getVictim().getLat();
+        }
+        if (victimLat == 0 && initialLat != 0) {
+            return initialLat;
+        }
         return victimLat;
     }
 
@@ -402,6 +599,12 @@ public class SosRequest implements Serializable {
     }
 
     public double getVictimLng() {
+        if (victimLng == 0 && locations != null && locations.getVictim() != null) {
+            return locations.getVictim().getLng();
+        }
+        if (victimLng == 0 && initialLng != 0) {
+            return initialLng;
+        }
         return victimLng;
     }
 
@@ -410,6 +613,9 @@ public class SosRequest implements Serializable {
     }
 
     public double getVictimAccuracyM() {
+        if (victimAccuracyM == 0 && locations != null && locations.getVictim() != null) {
+            return locations.getVictim().getAccuracyM();
+        }
         return victimAccuracyM;
     }
 
@@ -418,6 +624,9 @@ public class SosRequest implements Serializable {
     }
 
     public double getRescuerLat() {
+        if (rescuerLat == 0 && locations != null && locations.getRescuer() != null) {
+            return locations.getRescuer().getLat();
+        }
         return rescuerLat;
     }
 
@@ -426,6 +635,9 @@ public class SosRequest implements Serializable {
     }
 
     public double getRescuerLng() {
+        if (rescuerLng == 0 && locations != null && locations.getRescuer() != null) {
+            return locations.getRescuer().getLng();
+        }
         return rescuerLng;
     }
 
@@ -434,10 +646,197 @@ public class SosRequest implements Serializable {
     }
 
     public double getRescuerAccuracyM() {
+        if (rescuerAccuracyM == 0 && locations != null && locations.getRescuer() != null) {
+            return locations.getRescuer().getAccuracyM();
+        }
         return rescuerAccuracyM;
     }
 
     public void setRescuerAccuracyM(double rescuerAccuracyM) {
         this.rescuerAccuracyM = rescuerAccuracyM;
+    }
+
+    public RequesterInfo getRequester() {
+        return requester;
+    }
+
+    public void setRequester(RequesterInfo requester) {
+        this.requester = requester;
+        syncFromNestedApiObjects();
+    }
+
+    public RescuerInfo getRescuer() {
+        return rescuer;
+    }
+
+    public void setRescuer(RescuerInfo rescuer) {
+        this.rescuer = rescuer;
+        syncFromNestedApiObjects();
+    }
+
+    public LocationsPair getLocations() {
+        return locations;
+    }
+
+    public void setLocations(LocationsPair locations) {
+        this.locations = locations;
+        syncFromNestedApiObjects();
+    }
+
+    /**
+     * Đối tượng con {@code requester} lồng trong kết quả API #16 ({@code GET /api/rescuer/queue})
+     * và API #17 ({@code GET /api/rescuer/my-active}).
+     */
+    public static class RequesterInfo implements Serializable {
+        @SerializedName("id")
+        private String id;
+
+        @SerializedName("full_name")
+        private String fullName;
+
+        @SerializedName("phone")
+        private String phone;
+
+        public RequesterInfo() {
+        }
+
+        public RequesterInfo(String id, String fullName, String phone) {
+            this.id = id;
+            this.fullName = fullName;
+            this.phone = phone;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+    }
+
+    /**
+     * Đối tượng con {@code rescuer} lồng trong kết quả API #08 ({@code GET /api/sos/my-active})
+     * và sự kiện WebSocket {@code SOS_ACCEPTED}.
+     */
+    public static class RescuerInfo implements Serializable {
+        @SerializedName(value = "id", alternate = {"rescuer_id"})
+        private String id;
+
+        @SerializedName(value = "full_name", alternate = {"rescuer_name"})
+        private String fullName;
+
+        @SerializedName(value = "phone", alternate = {"rescuer_phone"})
+        private String phone;
+
+        @SerializedName("team_name")
+        private String teamName;
+
+        @SerializedName("team_id")
+        private String teamId;
+
+        public RescuerInfo() {
+        }
+
+        public RescuerInfo(String id, String fullName, String phone, String teamName, String teamId) {
+            this.id = id;
+            this.fullName = fullName;
+            this.phone = phone;
+            this.teamName = teamName;
+            this.teamId = teamId;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getTeamName() {
+            return teamName;
+        }
+
+        public void setTeamName(String teamName) {
+            this.teamName = teamName;
+        }
+
+        public String getTeamId() {
+            return teamId;
+        }
+
+        public void setTeamId(String teamId) {
+            this.teamId = teamId;
+        }
+    }
+
+    /**
+     * Cặp tọa độ hiện tại {@code locations: { "VICTIM": {...}, "RESCUER": {...} }}
+     * trả về từ API #08 ({@code GET /api/sos/my-active}), #17 ({@code GET /api/rescuer/my-active})
+     * và #24 ({@code GET /api/location/{sos_id}/current}).
+     */
+    public static class LocationsPair implements Serializable {
+        @SerializedName("VICTIM")
+        private LocationCurrent victim;
+
+        @SerializedName("RESCUER")
+        private LocationCurrent rescuer;
+
+        public LocationsPair() {
+        }
+
+        public LocationsPair(LocationCurrent victim, LocationCurrent rescuer) {
+            this.victim = victim;
+            this.rescuer = rescuer;
+        }
+
+        public LocationCurrent getVictim() {
+            return victim;
+        }
+
+        public void setVictim(LocationCurrent victim) {
+            this.victim = victim;
+        }
+
+        public LocationCurrent getRescuer() {
+            return rescuer;
+        }
+
+        public void setRescuer(LocationCurrent rescuer) {
+            this.rescuer = rescuer;
+        }
     }
 }

@@ -50,6 +50,8 @@ dependencies {
 
     // JSON parsing
     implementation(libs.gson)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
