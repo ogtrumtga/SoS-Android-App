@@ -1,261 +1,95 @@
 package com.javafinal.ui.rescuer;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.google.android.material.button.MaterialButton;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
+import com.javafinal.model.LocationCurrent;
+import com.javafinal.model.SosApiModels;
 import com.javafinal.model.SosRequest;
+import com.javafinal.ui.LiveSosActivity;
 import com.javafinal.util.MapHelper;
 import com.javafinal.util.NavigationHelper;
-
-import org.maplibre.android.maps.MapLibreMap;
-import org.maplibre.android.maps.MapView;
-
+import com.javafinal.util.SosMapData;
+import com.javafinal.viewmodel.RescuerViewModel;
+import com.javafinal.viewmodel.SosRules;
 import java.util.Locale;
 
-public class RealtimeTrackingActivity extends AppCompatActivity {
-
-    private MapView mapView;
-    private MapLibreMap mapLibreMap;
-    private SosRequest currentMission;
-
-    private TextView tvMissionCode;
-    private TextView tvDistanceRemain;
-    private TextView tvSpeed;
-    private TextView tvEta;
-    private TextView tvVictimTitle;
-    private TextView tvVictimDetail;
-    private TextView tvTypeBadge;
-
-    private MaterialButton btnArrived;
-    private MaterialButton btnYieldMission;
-
-    private final Handler locationBroadcastHandler = new Handler(Looper.getMainLooper());
-    private final Runnable locationBroadcastRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isFinishing() || currentMission == null) return;
-            if (SosRequest.STATUS_RESCUING.equals(currentMission.getStatus())) {
-                boolean moved = currentMission.advanceAlongRoute();
-                syncUiWithStatus();
-                renderTacticalMap();
-                if (moved) {
-                    locationBroadcastHandler.postDelayed(this, 3200);
-                }
-            }
-        }
-    };
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        MapHelper.initMapLibre(this);
-        setContentView(R.layout.activity_realtime_tracking);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        String sosId = getIntent().getStringExtra("SOS_ID");
-        currentMission = repo.getMyActiveRescuerMission();
-        if (currentMission == null) {
-            currentMission = repo.getSosById(sosId);
-            if (SosRequest.STATUS_WAITING.equals(currentMission.getStatus())) {
-                repo.acceptSosMission(currentMission);
-            }
-        }
-
-        MaterialButton btnBack = findViewById(R.id.btnBack);
-        tvMissionCode = findViewById(R.id.tvMissionCode);
-        MaterialButton btnCallVictim = findViewById(R.id.btnCallVictim);
-
-        MaterialButton fabLayers = findViewById(R.id.fabLayers);
-        MaterialButton fabMyLocation = findViewById(R.id.fabMyLocation);
-
-        tvDistanceRemain = findViewById(R.id.tvDistanceRemain);
-        tvSpeed = findViewById(R.id.tvSpeed);
-        tvEta = findViewById(R.id.tvEta);
-
-        tvVictimTitle = findViewById(R.id.tvVictimTitle);
-        tvVictimDetail = findViewById(R.id.tvVictimDetail);
-        tvTypeBadge = findViewById(R.id.tvTypeBadge);
-
-        btnArrived = findViewById(R.id.btnArrived);
-        btnYieldMission = findViewById(R.id.btnYieldMission);
-
-        mapView = findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-
-        syncUiWithStatus();
-
-        mapView.getMapAsync(map -> {
-            this.mapLibreMap = map;
-            MapHelper.applyDefaultStyle(map, style -> renderTacticalMap());
-        });
-
-        btnBack.setOnClickListener(v -> finish());
-        btnCallVictim.setOnClickListener(v ->
-                NavigationHelper.dialPhone(this, currentMission.getRequesterPhone()));
-
-        fabLayers.setOnClickListener(v ->
-                MapHelper.showLayerSwitchDialog(this, mapLibreMap, this::renderTacticalMap));
-
-        fabMyLocation.setOnClickListener(v -> renderTacticalMap());
-
-        btnArrived.setOnClickListener(v -> {
-            String st = currentMission.getStatus();
-            if (SosRequest.STATUS_ACCEPTED.equals(st)) {
-                repo.updateMissionStatus(currentMission, SosRequest.STATUS_RESCUING);
-                syncUiWithStatus();
-                renderTacticalMap();
-                locationBroadcastHandler.postDelayed(locationBroadcastRunnable, 2500);
-            } else if (SosRequest.STATUS_RESCUING.equals(st)) {
-                locationBroadcastHandler.removeCallbacks(locationBroadcastRunnable);
-                repo.updateMissionStatus(currentMission, SosRequest.STATUS_ARRIVED);
-                currentMission.snapRescuerToDestination();
-                syncUiWithStatus();
-                renderTacticalMap();
-            } else if (SosRequest.STATUS_ARRIVED.equals(st)) {
-                openConfirmComplete();
+public class RealtimeTrackingActivity extends LiveSosActivity {
+    private RescuerViewModel rescuer;
+    private MaterialButton next, release, call;
+    private boolean changing, ownAssignment;
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        setupMapScreen(R.layout.activity_realtime_tracking);
+        if (!requireSession()) return;
+        rescuer = vm(RescuerViewModel.class);
+        next = findViewById(R.id.btnArrived); release = findViewById(R.id.btnYieldMission); call = findViewById(R.id.btnCallVictim);
+        next.setEnabled(false); release.setEnabled(false); call.setEnabled(false);
+        initLiveSos(state);
+        bind("assignment", (SosApiModels.ActiveSosResponse response) -> {
+            ownAssignment = response.isActive() && response.getSos() != null && response.getSos().getId().equals(sosId);
+            if (!ownAssignment) { stopGps(); home(); return; }
+            currentSos = response.getSos(); onSosChanged();
+            if (gps != null) gps.request();
+        }, error -> showApiError(error, () -> execute("assignment", rescuer::loadMyActive)), null);
+        bind("status", (SosApiModels.MissionActionResponse response) -> {
+            if (currentSos != null && response.getStatus() != null) currentSos.setStatus(response.getStatus());
+            clearStatus(); onSosChanged(); refreshSos();
+        }, error -> { showApiError(error, this::refreshSos); refreshSos(); }, this::setChanging);
+        bind("release", (SosApiModels.MissionActionResponse response) -> { stopGps(); locationVm.cancelRequests(); home(); },
+                error -> showApiError(error, this::refreshSos), this::setChanging);
+        initMap(R.id.mapView, state, () -> renderLiveMap(true));
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        call.setOnClickListener(v -> { if (currentSos != null) NavigationHelper.dialPhone(this, currentSos.getRequesterPhone()); });
+        findViewById(R.id.fabLayers).setOnClickListener(v -> MapHelper.showLayerSwitchDialog(this, map, () -> renderLiveMap(true)));
+        findViewById(R.id.fabMyLocation).setOnClickListener(v -> renderLiveMap(true));
+        next.setOnClickListener(v -> {
+            if (currentSos == null || !ownAssignment) return;
+            if ("ARRIVED".equals(currentSos.getStatus())) openSos(ConfirmCompleteActivity.class, sosId);
+            else {
+                String target = "ACCEPTED".equals(currentSos.getStatus()) ? "RESCUING" : "ARRIVED";
+                execute("status", () -> rescuer.updateMissionStatus(currentSos, target));
             }
         });
-
-        btnYieldMission.setOnClickListener(v -> {
-            if (SosRequest.STATUS_ARRIVED.equals(currentMission.getStatus())) {
-                return;
-            }
-            NavigationHelper.showConfirmSheet(
-                    this,
-                    null,
-                    "Nhả ca cứu hộ?",
-                    "Yêu cầu sẽ quay lại hàng đợi để đội khác tiếp nhận.",
-                    "Xác nhận nhả ca",
-                    true,
-                    () -> {
-                        repo.releaseMission(currentMission);
-                        finish();
-                    },
-                    "Hủy",
-                    null
-            );
-        });
+        release.setOnClickListener(v -> NavigationHelper.showConfirmSheet(this, null, "Nhả ca cứu hộ?",
+                "Yêu cầu sẽ trở lại hàng đợi để đội khác tiếp nhận.", "Xác nhận nhả ca", true,
+                () -> execute("release", () -> rescuer.releaseSos(sosId)), "Quay lại", null));
     }
-
-    private void openConfirmComplete() {
-        Intent intent = new Intent(RealtimeTrackingActivity.this, ConfirmCompleteActivity.class);
-        intent.putExtra("SOS_ID", currentMission.getId());
-        startActivity(intent);
+    private void setChanging(boolean value) {
+        changing = value;
+        if (value) showLoading("Đang cập nhật tiến trình cứu hộ…");
+        onSosChanged();
     }
-
-    private void syncUiWithStatus() {
-        String st = currentMission.getStatus();
-        tvMissionCode.setText("SOS " + currentMission.getShortId());
-        tvVictimTitle.setText(currentMission.getDescription());
-        tvVictimDetail.setText(currentMission.getRequesterName() + " • " + currentMission.getRequesterPhone());
-        tvTypeBadge.setText(currentMission.getEmergencyTypeLabel());
-
-        double distKm = currentMission.getRemainingRouteDistanceKm();
-        tvDistanceRemain.setText(SosRequest.STATUS_ARRIVED.equals(st)
-                ? "0.0 km"
-                : String.format(Locale.US, "%.1f km", distKm));
-        tvSpeed.setText(String.format(Locale.US, "±%.1fm", currentMission.getRescuerAccuracyM()));
-        tvEta.setText(currentMission.getStatusLabel());
-
-        if (SosRequest.STATUS_ACCEPTED.equals(st)) {
-            btnArrived.setText("Bắt đầu di chuyển");
-            btnArrived.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.ink)));
-            btnYieldMission.setVisibility(View.VISIBLE);
-        } else if (SosRequest.STATUS_RESCUING.equals(st)) {
-            btnArrived.setText("Đã tới hiện trường");
-            btnArrived.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.red)));
-            btnYieldMission.setVisibility(View.VISIBLE);
-        } else {
-            btnArrived.setText("Hoàn thành ca cứu hộ");
-            btnArrived.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.green)));
-            btnYieldMission.setVisibility(View.GONE);
-        }
+    @Override protected boolean canPublishGps() {
+        return super.canPublishGps() && ownAssignment && currentSos != null
+                && !"WAITING".equals(currentSos.getStatus());
     }
-
-    private void renderTacticalMap() {
-        if (mapLibreMap == null || currentMission == null) return;
-        mapLibreMap.clear();
-        MockDataRepository repo = MockDataRepository.getInstance();
-        MapHelper.drawRescueRoute(
-                this,
-                mapLibreMap,
-                currentMission,
-                repo.getRescuerBaseLat(),
-                repo.getRescuerBaseLng(),
-                currentMission.getTeamName(),
-                currentMission.getRequesterName(),
-                this::syncUiWithStatus
-        );
+    @Override protected void onSosChanged() {
+        if (currentSos == null) return;
+        String status = currentSos.getStatus();
+        if ("WAITING".equals(status)) { stopGps(); home(); return; }
+        ((TextView) findViewById(R.id.tvMissionCode)).setText("SOS " + currentSos.getShortId());
+        ((TextView) findViewById(R.id.tvVictimTitle)).setText(text(currentSos.getDescription()));
+        ((TextView) findViewById(R.id.tvVictimDetail)).setText(text(currentSos.getRequesterName()) + " • " + text(currentSos.getRequesterPhone()));
+        ((TextView) findViewById(R.id.tvTypeBadge)).setText(currentSos.getEmergencyTypeLabel());
+        LocationCurrent victim = SosMapData.victim(currentSos), team = SosMapData.rescuer(currentSos);
+        ((TextView) findViewById(R.id.tvDistanceRemain)).setText(victim == null || team == null ? "Chưa có GPS"
+                : String.format(Locale.US, "%.1f km", SosRequest.computeHaversineKm(team.getLat(), team.getLng(), victim.getLat(), victim.getLng())));
+        ((TextView) findViewById(R.id.tvSpeed)).setText(team == null ? "—" : String.format(Locale.US, "±%.1fm", team.getAccuracyM()));
+        ((TextView) findViewById(R.id.tvEta)).setText(currentSos.getStatusLabel());
+        next.setText("ACCEPTED".equals(status) ? "Bắt đầu di chuyển" : "RESCUING".equals(status) ? "Đã tới hiện trường" : "Hoàn thành ca cứu hộ");
+        next.setEnabled(!changing && ownAssignment && ("ACCEPTED".equals(status) || "RESCUING".equals(status) || "ARRIVED".equals(status)));
+        release.setVisibility(SosRules.canRelease(status) ? View.VISIBLE : View.GONE);
+        release.setEnabled(!changing && ownAssignment && SosRules.canRelease(status));
+        call.setEnabled(currentSos.getRequesterPhone() != null);
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (mapView != null) mapView.onStart();
+    private void home() {
+        startActivity(new Intent(this, RescuerHomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)); finish();
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mapView != null) mapView.onResume();
-        syncUiWithStatus();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mapView != null) mapView.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mapView != null) mapView.onStop();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        if (mapView != null) mapView.onLowMemory();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        locationBroadcastHandler.removeCallbacksAndMessages(null);
-        if (mapView != null) mapView.onDestroy();
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mapView != null) mapView.onSaveInstanceState(outState);
-    }
+    @Override protected void onSosEnded() { home(); }
+    @Override protected void onStart() { super.onStart(); if (rescuer != null && sosId != null) execute("assignment", rescuer::loadMyActive); }
+    @Override protected void onStop() { ownAssignment = false; super.onStop(); }
 }

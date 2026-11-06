@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -49,7 +50,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="12dp"
                 android:backgroundTint="@color/green_soft"
-                android:text="HOÀN THÀNH"
+                tools:text="HOÀN THÀNH" android:text="@string/data_pending"
                 android:textColor="@color/green" />
 
             <TextView
@@ -59,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Đã hoàn thành cứu hộ" />
+                tools:text="Đã hoàn thành cứu hộ" android:text="@string/data_pending" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/Card"
@@ -85,14 +86,14 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="#2CC295A6" />
+                            tools:text="#2CC295A6" android:text="@string/data_pending" />
 
                         <TextView
                             android:id="@+id/tvClosedAt"
                             style="@style/Text.Caption"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="09:21 • Hôm nay" />
+                            tools:text="09:21 • Hôm nay" android:text="@string/data_pending" />
                     </LinearLayout>
 
                     <View
@@ -104,7 +105,7 @@
                         style="@style/Text.Secondary"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Sự cố: Ngập lụt"
+                        tools:text="Sự cố: Ngập lụt" android:text="@string/data_pending"
                         android:textColor="@color/ink" />
 
                     <TextView
@@ -113,7 +114,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Đội cứu hộ Quận 1" />
+                        tools:text="Đội cứu hộ Quận 1" android:text="@string/data_pending" />
 
                     <TextView
                         android:id="@+id/tvShelter"
@@ -121,9 +122,32 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" />
+                        tools:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" android:text="@string/data_pending" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvEndReason"
+                style="@style/Text.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/data_pending" />
+
+            <TextView
+                style="@style/Text.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Nhật ký cứu hộ" />
+
+            <TextView
+                android:id="@+id/tvSosLogs"
+                style="@style/Text.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/data_pending" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBackToMap"

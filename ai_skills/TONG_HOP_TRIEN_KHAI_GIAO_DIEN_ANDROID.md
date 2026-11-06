@@ -1,5 +1,8 @@
 # TỔNG HỢP TRIỂN KHAI GIAO DIỆN ANDROID & LUỒNG HOẠT ĐỘNG (MOCK DATA)
 
+> **Tài liệu lịch sử:** Phần dưới mô tả phiên bản mock trước đây. Ứng dụng hiện đã chuyển
+> toàn bộ màn hình sang API thật và xóa kho mock. Xem [TICH_HOP_API_GIAO_DIEN.md](TICH_HOP_API_GIAO_DIEN.md).
+
 > **Dự án:** Hệ thống Cứu hộ Khẩn cấp (SOS Rescue Android App)  
 > **Tài liệu đối chiếu chuẩn:** `ai_skills/BANG_API_VA_LUONG_HOAT_DONG.md`  
 > **Trạng thái hiện tại:** Đã hoàn thiện toàn bộ 10 màn hình XML, các Activity Java, tích hợp bản đồ MapLibre Native SDK và kho dữ liệu giả lập (`MockDataRepository`) khớp 100% với cấu trúc API & các Ràng buộc nghiệp vụ (`RB04`, `RB05`, `RB06`, `RB07`, `RB09`).

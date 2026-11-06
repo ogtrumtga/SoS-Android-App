@@ -153,6 +153,17 @@ public class ApiViewModelTest {
         assertEquals("s1", item.getId());
         assertEquals("An", item.getRequesterName());
         assertEquals("0901234567", item.getRequesterPhone());
+        responseBody = "{\"active\":true,\"case\":{\"sos_id\":\"s2\",\"emergency_type_id\":\"eeeeeeee-0006-0000-0000-000000000006\",\"emergency_type\":\"Y_TE_KHAN_CAP\",\"victim\":{\"id\":\"u2\",\"full_name\":\"Bình\",\"phone\":\"0909998888\"}}}";
+        SosRequest activeCase = await(rescuers.loadMyActive()).getData().getSos();
+        assertEquals("s2", activeCase.getId());
+        assertEquals("Bình", activeCase.getRequesterName());
+        assertEquals("0909998888", activeCase.getRequesterPhone());
+        responseBody = "{\"success\":true,\"count\":2,\"data\":[{\"id\":\"eeeeeeee-0006-0000-0000-000000000006\",\"name\":\"Y_TE_KHAN_CAP\",\"description\":\"Cấp cứu y tế khẩn cấp, bệnh nhân nguy kịch cần hỗ trợ y bác sĩ\"},{\"id\":\"custom-uuid\",\"name\":\"CUU_HO_THUY\",\"description\":\"Cứu hộ đường thủy, lật thuyền trên sông\"}]}";
+        await(types.loadAll());
+        assertEquals("Cấp cứu y tế khẩn cấp", activeCase.getEmergencyTypeLabel());
+        SosRequest customSos = new SosRequest();
+        customSos.setEmergencyTypeId("custom-uuid");
+        assertEquals("Cứu hộ đường thủy", customSos.getEmergencyTypeLabel());
     }
 
     @Test public void invalidInputsNeverReachNetwork() {
@@ -194,10 +205,10 @@ public class ApiViewModelTest {
         ApiError limited = await(auth.requestOtp("0901234567", "USER")).getError();
         assertEquals("25", limited.getRetryAfter());
         responseCode = 409;
-        responseBody = "{\"detail\":\"Ca đã được đội khác tiếp nhận\"}";
+        responseBody = "{\"detail\":{\"message\":\"Bạn đang có yêu cầu SOS chưa kết thúc.\",\"active_sos_id\":\"s1\",\"status\":\"WAITING\"}}";
         ApiError conflict = await(rescuers.acceptSos("s1")).getError();
         assertTrue(conflict.isConflict());
-        assertEquals("Ca đã được đội khác tiếp nhận", conflict.getMessage());
+        assertEquals("Bạn đang có yêu cầu SOS chưa kết thúc.", conflict.getMessage());
         assertEquals(3, requests.size());
     }
 

@@ -1,3 +1,4 @@
 <resources>
+    <string name="data_pending">—</string>
     <string name="app_name">SOS Rescue</string>
 </resources>

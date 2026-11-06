@@ -15,7 +15,11 @@ public class PublicSosPoint implements Serializable {
     @SerializedName("sos_id")
     private String sosId;
 
-    /** Mã loại khẩn cấp (VD: "NGAP_LUT", "Y_TE") */
+    /** FK UUID -> emergency_types.id */
+    @SerializedName("emergency_type_id")
+    private String emergencyTypeId;
+
+    /** Mã loại khẩn cấp từ bảng emergency_types */
     @SerializedName("emergency_type")
     private String emergencyType;
 
@@ -49,7 +53,7 @@ public class PublicSosPoint implements Serializable {
     }
 
     public String getEmergencyTypeLabel() {
-        return SosRequest.getEmergencyTypeLabel(emergencyType);
+        return EmergencyType.resolveLabel(emergencyTypeId, emergencyType);
     }
 
     public String getSosId() {
@@ -58,6 +62,14 @@ public class PublicSosPoint implements Serializable {
 
     public void setSosId(String sosId) {
         this.sosId = sosId;
+    }
+
+    public String getEmergencyTypeId() {
+        return emergencyTypeId;
+    }
+
+    public void setEmergencyTypeId(String emergencyTypeId) {
+        this.emergencyTypeId = emergencyTypeId;
     }
 
     public String getEmergencyType() {

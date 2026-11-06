@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import com.google.gson.Gson;
+import com.javafinal.BuildConfig;
 import com.javafinal.network.ApiClient;
 import com.javafinal.network.PreferencesSessionStore;
 import com.javafinal.network.SessionStore;
@@ -18,7 +19,7 @@ public final class ApiViewModelFactory implements ViewModelProvider.Factory {
     private final ApiClient api;
 
     public static synchronized ApiViewModelFactory getDefault(Context context) {
-        if (defaultFactory == null) defaultFactory = new ApiViewModelFactory(context, EMULATOR_BASE_URL);
+        if (defaultFactory == null) defaultFactory = new ApiViewModelFactory(context, BuildConfig.API_BASE_URL);
         return defaultFactory;
     }
 

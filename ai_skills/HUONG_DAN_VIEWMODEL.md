@@ -157,8 +157,8 @@ nên UI nên render/tải lại dữ liệu một cách idempotent khi observer 
 để giữ đầy đủ các trường khi schema chưa được mô tả. Hai hợp đồng này cần đối chiếu backend
 thật khi tích hợp. Phần còn lại dùng DTO đã có trong project.
 
-Các Activity hiện có vẫn dùng `MockDataRepository`; thay đổi này bổ sung tầng API/ViewModel,
-chưa chuyển toàn bộ giao diện sang backend thật.
+Các Activity hiện đã gọi ViewModel để hiển thị dữ liệu API. `MockDataRepository` đã được xóa.
+Xem [TICH_HOP_API_GIAO_DIEN.md](TICH_HOP_API_GIAO_DIEN.md) để cấu hình backend và kiểm thử các màn hình.
 
 ```powershell
 .\gradlew.bat :app:testDebugUnitTest :app:assembleDebug --offline --console=plain

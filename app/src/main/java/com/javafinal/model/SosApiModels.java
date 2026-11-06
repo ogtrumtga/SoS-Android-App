@@ -141,6 +141,34 @@ public final class SosApiModels {
         }
 
         public CreateSosRequest(
+                EmergencyType type,
+                String description,
+                String visibility,
+                double initialLat,
+                double initialLng
+        ) {
+            this(type != null ? type.getId() : null,
+                    type != null ? type.getName() : null,
+                    description, visibility, initialLat, initialLng);
+        }
+
+        public CreateSosRequest(
+                String emergencyTypeId,
+                String emergencyType,
+                String description,
+                String visibility,
+                double initialLat,
+                double initialLng
+        ) {
+            this.emergencyTypeId = emergencyTypeId;
+            this.emergencyType = emergencyType;
+            this.description = description;
+            this.visibility = visibility;
+            this.initialLat = initialLat;
+            this.initialLng = initialLng;
+        }
+
+        public CreateSosRequest(
                 String emergencyType,
                 String description,
                 String visibility,
@@ -241,7 +269,7 @@ public final class SosApiModels {
         @SerializedName("active")
         private boolean active;
 
-        @SerializedName(value = "sos", alternate = {"mission"})
+        @SerializedName(value = "sos", alternate = {"mission", "case"})
         private SosRequest sos;
 
         public boolean isActive() {
@@ -351,7 +379,7 @@ public final class SosApiModels {
         @SerializedName("count")
         private int count;
 
-        @SerializedName("logs")
+        @SerializedName(value = "logs", alternate = {"data"})
         private List<SosLog> logs = new ArrayList<>();
 
         public boolean isSuccess() {

@@ -149,6 +149,11 @@ public final class ApiClient {
         JsonElement detail = object.has("detail") ? object.get("detail") : object.get("message");
         if (detail == null || detail.isJsonNull()) return fallback;
         if (detail.isJsonPrimitive()) return detail.getAsString();
+        if (detail.isJsonObject()) {
+            JsonObject detailObj = detail.getAsJsonObject();
+            JsonElement msg = detailObj.get("message");
+            if (msg != null && msg.isJsonPrimitive()) return msg.getAsString();
+        }
         // FastAPI 422 có detail là mảng {loc, msg, type}.
         if (detail.isJsonArray()) {
             StringBuilder result = new StringBuilder();

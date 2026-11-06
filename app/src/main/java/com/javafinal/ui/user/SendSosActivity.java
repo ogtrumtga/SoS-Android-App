@@ -1,235 +1,168 @@
 package com.javafinal.ui.user;
 
-import android.content.Intent;
-import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
-import com.javafinal.model.SosRequest;
+import com.javafinal.model.EmergencyType;
+import com.javafinal.model.SosApiModels;
+import com.javafinal.ui.MapApiActivity;
+import com.javafinal.util.DeviceLocation;
 import com.javafinal.util.MapHelper;
 import com.javafinal.util.NavigationHelper;
-
-import org.maplibre.android.annotations.Icon;
+import com.javafinal.util.SosMapData;
+import com.javafinal.viewmodel.EmergencyTypeViewModel;
+import com.javafinal.viewmodel.SosViewModel;
+import java.util.Locale;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.geometry.LatLng;
-import org.maplibre.android.maps.MapLibreMap;
-import org.maplibre.android.maps.MapView;
 
-import java.util.Locale;
+public class SendSosActivity extends MapApiActivity {
+    private SosViewModel sos;
+    private EmergencyTypeViewModel types;
+    private DeviceLocation gps;
+    private ChipGroup typeChips;
+    private TextView selectedTypeDescView;
+    private TextInputEditText description;
+    private MaterialButton submit;
+    private double lat = Double.NaN, lng = Double.NaN;
+    private boolean manualLocation, busy, typesReady;
+    private String selectedTypeId;
+    private String selectedType;
 
-public class SendSosActivity extends AppCompatActivity {
-
-    private MapView mapPreview;
-    private MapLibreMap mapLibreMap;
-
-    private TextView tvCoordinates;
-    private TextInputEditText edtDescription;
-    private ChipGroup chipGroupType;
-    private RadioGroup rgPrivacy;
-
-    private double selectedLat;
-    private double selectedLng;
-    private double selectedAccuracy = 4.5;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        MapHelper.initMapLibre(this);
-        setContentView(R.layout.activity_send_sos);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-                            | WindowInsetsCompat.Type.displayCutout()
-                            | WindowInsetsCompat.Type.ime());
-            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return insets;
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        setupMapScreen(R.layout.activity_send_sos);
+        if (!requireSession()) return;
+        sos = vm(SosViewModel.class);
+        types = vm(EmergencyTypeViewModel.class);
+        typeChips = findViewById(R.id.chipGroupType);
+        typeChips.removeAllViews();
+        selectedTypeDescView = findViewById(R.id.tvSelectedTypeDescription);
+        description = findViewById(R.id.edtDescription);
+        submit = findViewById(R.id.btnSubmitSos);
+        submit.setEnabled(false);
+        ((MaterialToolbar) findViewById(R.id.toolbar)).setNavigationOnClickListener(v -> finish());
+        if (state != null) {
+            lat = state.getDouble("lat", Double.NaN); lng = state.getDouble("lng", Double.NaN);
+            manualLocation = state.getBoolean("manual");
+            selectedTypeId = state.getString("type_id");
+            selectedType = state.getString("type");
+        }
+        gps = new DeviceLocation(this, this::onGps, message -> NavigationHelper.showSnack(this, message));
+        bind("types", (SosApiModels.EmergencyTypeListResponse response) -> {
+            typeChips.removeAllViews();
+            if (response.getData() != null) for (EmergencyType type : response.getData()) {
+                if (type == null) continue;
+                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.item_chip_filter, typeChips, false);
+                chip.setId(View.generateViewId()); chip.setCheckable(true);
+                chip.setText(type.getDisplayLabel()); chip.setTag(type);
+                typeChips.addView(chip);
+                boolean matchedById = selectedTypeId != null && type.getId() != null && selectedTypeId.equals(type.getId());
+                boolean matchedByName = selectedType != null && type.getName() != null && selectedType.equals(type.getName());
+                if (matchedById || matchedByName) chip.setChecked(true);
+            }
+            typesReady = typeChips.getChildCount() > 0;
+            updateSubmit();
+            if (typesReady) clearStatus(); else showStatus("Chưa có loại sự cố. Vui lòng thử tải lại.", this::loadTypes);
+        }, error -> showApiError(error, this::loadTypes), loading -> { if (loading) showLoading("Đang tải loại sự cố…"); });
+        bind("create", (SosApiModels.SosSingleResponse response) -> {
+            if (response.getSos() == null || response.getSos().getId() == null) {
+                showStatus("Máy chủ chưa trả về mã SOS. Hãy kiểm tra ca đang hoạt động.", this::loadActive); return;
+            }
+            openSos(TrackSosActivity.class, response.getSos().getId()); finish();
+        }, error -> { if (error.isConflict()) loadActive(); else showApiError(error, null); }, value -> {
+            busy = value; updateSubmit(); if (value) showLoading("Đang gửi tín hiệu SOS…");
         });
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        selectedLat = repo.getMyLat();
-        selectedLng = repo.getMyLng();
-        selectedAccuracy = repo.getMyAccuracyM();
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-
-        tvCoordinates = findViewById(R.id.tvCoordinates);
-        MaterialButton btnRefreshGps = findViewById(R.id.btnRefreshGps);
-
-        mapPreview = findViewById(R.id.mapPreview);
-        mapPreview.onCreate(savedInstanceState);
-        MapHelper.enableScrollViewTouch(mapPreview);
-
-        updateCoordinatesUi();
-
-        mapPreview.getMapAsync(map -> {
-            this.mapLibreMap = map;
-            MapHelper.applyDefaultStyle(map, style -> {
-                MapHelper.moveCamera(map, selectedLat, selectedLng, 15.5);
-                renderPinOnPreview();
-            });
-
+        bind("active", (SosApiModels.ActiveSosResponse response) -> {
+            if (response.isActive() && response.getSos() != null) {
+                openSos(TrackSosActivity.class, response.getSos().getId()); finish();
+            } else showStatus("Chưa tìm thấy SOS đang hoạt động. Vui lòng gửi lại.", null);
+        }, error -> showApiError(error, this::loadActive), null);
+        typeChips.setOnCheckedStateChangeListener((group, ids) -> {
+            View checked = ids.isEmpty() ? null : group.findViewById(ids.get(0));
+            EmergencyType chosen = checked != null && checked.getTag() instanceof EmergencyType
+                    ? (EmergencyType) checked.getTag() : null;
+            selectedTypeId = chosen == null ? null : chosen.getId();
+            selectedType = chosen == null ? null : chosen.getName();
+            if (selectedTypeDescView != null) {
+                String typeDesc = chosen != null && chosen.getDescription() != null ? chosen.getDescription().trim() : "";
+                selectedTypeDescView.setText(typeDesc);
+                selectedTypeDescView.setVisibility(typeDesc.isEmpty() ? View.GONE : View.VISIBLE);
+            }
+            updateSubmit();
+        });
+        initMap(R.id.mapPreview, state, () -> {
+            renderPin();
             map.addOnMapClickListener(point -> {
-                selectedLat = point.getLatitude();
-                selectedLng = point.getLongitude();
-                selectedAccuracy = 3.2;
-                repo.setMyLocation(selectedLat, selectedLng, selectedAccuracy);
-                updateCoordinatesUi();
-                renderPinOnPreview();
-                return true;
+                if (busy) return true;
+                lat = point.getLatitude(); lng = point.getLongitude(); manualLocation = true;
+                updateCoordinates(); renderPin(); return true;
             });
         });
-
-        btnRefreshGps.setOnClickListener(v -> {
-            selectedLat = repo.getMyLat() + (Math.random() - 0.5) * 0.0005;
-            selectedLng = repo.getMyLng() + (Math.random() - 0.5) * 0.0005;
-            selectedAccuracy = 3.8;
-            repo.setMyLocation(selectedLat, selectedLng, selectedAccuracy);
-            updateCoordinatesUi();
-            if (mapLibreMap != null) {
-                MapHelper.moveCamera(mapLibreMap, selectedLat, selectedLng, 16.0);
-                renderPinOnPreview();
-            }
+        findViewById(R.id.btnRefreshGps).setOnClickListener(v -> {
+            manualLocation = false;
+            gps.request();
+            if (gps.getLatest() != null) onGps(gps.getLatest());
         });
-
-        chipGroupType = findViewById(R.id.chipGroupType);
-        edtDescription = findViewById(R.id.edtDescription);
-        rgPrivacy = findViewById(R.id.rgPrivacy);
-
-        ChipGroup chipGroupQuickTags = findViewById(R.id.chipGroupQuickTags);
-        for (int i = 0; i < chipGroupQuickTags.getChildCount(); i++) {
-            View child = chipGroupQuickTags.getChildAt(i);
-            if (child instanceof Chip) {
-                Chip chip = (Chip) child;
-                chip.setOnClickListener(v -> {
-                    String tag = chip.getText().toString().replace("+ ", "").trim();
-                    String current = edtDescription.getText() != null
-                            ? edtDescription.getText().toString().trim()
-                            : "";
-                    if (current.isEmpty()) {
-                        edtDescription.setText(tag);
-                    } else if (!current.contains(tag)) {
-                        edtDescription.setText(current + ", " + tag.toLowerCase(Locale.ROOT));
-                    }
-                    if (edtDescription.getText() != null) {
-                        edtDescription.setSelection(edtDescription.getText().length());
-                    }
-                });
-            }
+        ChipGroup quickTags = findViewById(R.id.chipGroupQuickTags);
+        for (int i = 0; i < quickTags.getChildCount(); i++) {
+            View child = quickTags.getChildAt(i);
+            if (child instanceof Chip) child.setOnClickListener(v -> {
+                String tag = ((Chip) v).getText().toString().replace("+ ", "").trim();
+                String old = description.getText() == null ? "" : description.getText().toString();
+                if (!old.contains(tag)) description.setText(old.isEmpty() ? tag : old + ", " + tag);
+            });
         }
-
-        MaterialButton btnSubmitSos = findViewById(R.id.btnSubmitSos);
-        btnSubmitSos.setOnClickListener(v -> submitSosRequest());
+        submit.setOnClickListener(v -> sendSos());
+        updateCoordinates(); loadTypes(); gps.request();
     }
-
-    private void updateCoordinatesUi() {
-        tvCoordinates.setText(String.format(Locale.US, "%.5f, %.5f (±%.1fm)",
-                selectedLat, selectedLng, selectedAccuracy));
+    private void loadTypes() { execute("types", types::loadAll); }
+    private void loadActive() { execute("active", sos::loadMyActive); }
+    private void onGps(Location location) {
+        if (manualLocation || busy) return;
+        lat = location.getLatitude(); lng = location.getLongitude();
+        updateCoordinates(); renderPin();
     }
-
-    private void renderPinOnPreview() {
-        if (mapLibreMap == null) return;
-        mapLibreMap.clear();
-        Icon sosPin = MapHelper.createPinIcon(this, Color.parseColor("#E5383B"), "SOS");
-        mapLibreMap.addMarker(new MarkerOptions()
-                .position(new LatLng(selectedLat, selectedLng))
-                .title("Vị trí cần cứu hộ")
-                .icon(sosPin));
+    private boolean hasSelectedType() {
+        return (selectedTypeId != null && !selectedTypeId.trim().isEmpty())
+                || (selectedType != null && !selectedType.trim().isEmpty());
     }
-
-    private void submitSosRequest() {
-        if (selectedLat < -90 || selectedLat > 90 || selectedLng < -180 || selectedLng > 180) {
-            NavigationHelper.showSnack(this, "Tọa độ không hợp lệ");
-            return;
-        }
-
-        int checkedId = chipGroupType.getCheckedChipId();
-        String emergencyType = SosRequest.TYPE_NGAP_LUT;
-        if (checkedId == R.id.chipMedical) {
-            emergencyType = SosRequest.TYPE_Y_TE;
-        } else if (checkedId == R.id.chipCollapse) {
-            emergencyType = SosRequest.TYPE_MAC_KET;
-        } else if (checkedId == R.id.chipFood) {
-            emergencyType = SosRequest.TYPE_NHU_YEU_PHAM;
-        } else if (checkedId == R.id.chipFire) {
-            emergencyType = SosRequest.TYPE_CHAY_NO;
-        }
-
-        String desc = edtDescription.getText() != null ? edtDescription.getText().toString().trim() : "";
-        if (desc.isEmpty()) {
-            NavigationHelper.showSnack(this, "Vui lòng nhập mô tả tình trạng");
-            return;
-        }
-
-        String visibility = rgPrivacy.getCheckedRadioButtonId() == R.id.rbPrivate
-                ? SosRequest.VISIBILITY_PRIVATE
-                : SosRequest.VISIBILITY_PUBLIC;
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        repo.createNewSos(emergencyType, desc, visibility, selectedLat, selectedLng);
-
-        Intent intent = new Intent(SendSosActivity.this, TrackSosActivity.class);
-        startActivity(intent);
-        finish();
+    private void updateSubmit() { submit.setEnabled(!busy && typesReady && hasSelectedType() && SosMapData.valid(lat, lng)); }
+    private void updateCoordinates() {
+        ((TextView) findViewById(R.id.tvCoordinates)).setText(SosMapData.valid(lat, lng)
+                ? String.format(Locale.US, "%.5f, %.5f • %s", lat, lng, manualLocation ? "Điểm đã chọn" : "GPS thiết bị")
+                : "Đang chờ GPS hoặc chạm bản đồ để chọn vị trí");
+        updateSubmit();
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (mapPreview != null) mapPreview.onStart();
+    private void renderPin() {
+        if (!mapReady || !SosMapData.valid(lat, lng)) return;
+        map.clear();
+        map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title("Vị trí cần cứu hộ")
+                .icon(MapHelper.createPinIcon(this, android.graphics.Color.RED, "SOS")));
+        MapHelper.moveCamera(map, lat, lng, 15);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mapPreview != null) mapPreview.onResume();
+    private void sendSos() {
+        String content = description.getText() == null ? "" : description.getText().toString().trim();
+        if (content.isEmpty()) { description.setError("Vui lòng mô tả tình trạng"); return; }
+        if (content.length() > 500) { description.setError("Mô tả tối đa 500 ký tự"); return; }
+        if (!SosMapData.valid(lat, lng) || !hasSelectedType()) return;
+        String visibility = ((RadioGroup) findViewById(R.id.rgPrivacy)).getCheckedRadioButtonId() == R.id.rbPrivate ? "PRIVATE" : "PUBLIC";
+        SosApiModels.CreateSosRequest request = new SosApiModels.CreateSosRequest(selectedTypeId, selectedType, content, visibility, lat, lng);
+        execute("create", () -> sos.createSos(request));
     }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mapPreview != null) mapPreview.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mapPreview != null) mapPreview.onStop();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        if (mapPreview != null) mapPreview.onLowMemory();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mapPreview != null) mapPreview.onDestroy();
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mapPreview != null) mapPreview.onSaveInstanceState(outState);
+    @Override protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putDouble("lat", lat); state.putDouble("lng", lng);
+        state.putBoolean("manual", manualLocation);
+        state.putString("type_id", selectedTypeId);
+        state.putString("type", selectedType);
     }
 }

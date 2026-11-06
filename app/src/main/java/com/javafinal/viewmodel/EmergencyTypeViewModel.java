@@ -1,6 +1,7 @@
 package com.javafinal.viewmodel;
 
 import androidx.lifecycle.LiveData;
+import com.javafinal.model.EmergencyType;
 import com.javafinal.model.SosApiModels.*;
 import com.javafinal.network.ApiClient;
 
@@ -10,12 +11,14 @@ public final class EmergencyTypeViewModel extends BaseApiViewModel {
 
     public LiveData<ApiState<EmergencyTypeListResponse>> loadAll() {
         return request("GET", "api/emergency-types", null, false,
-                EmergencyTypeListResponse.class, null, null);
+                EmergencyTypeListResponse.class, null,
+                response -> { if (response != null) EmergencyType.cacheAll(response.getData()); });
     }
 
     public LiveData<ApiState<EmergencyTypeSingleResponse>> loadDetail(String id) {
         return request("GET", () -> "api/emergency-types/" + ApiClient.segment(id), null,
-                false, EmergencyTypeSingleResponse.class, null, null);
+                false, EmergencyTypeSingleResponse.class, null,
+                response -> { if (response != null) EmergencyType.cache(response.getData()); });
     }
 
     public LiveData<ApiState<EmergencyTypeSingleResponse>> create(String name, String description) {
@@ -34,7 +37,7 @@ public final class EmergencyTypeViewModel extends BaseApiViewModel {
                 () -> {
                     body.setName(InputValidator.required(name, "Tên loại sự cố"));
                     body.setDescription(description == null ? null : description.trim());
-                }, null);
+                }, response -> { if (response != null) EmergencyType.cache(response.getData()); });
     }
 
     public LiveData<ApiState<EmergencyTypeSingleResponse>> delete(String id) {

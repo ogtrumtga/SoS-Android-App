@@ -51,6 +51,9 @@ public class WebSocketMessage implements Serializable {
     private String message;
 
     // Trường dữ liệu cho sự kiện NEW_SOS
+    @SerializedName("emergency_type_id")
+    private String emergencyTypeId;
+
     @SerializedName("emergency_type")
     private String emergencyType;
 
@@ -157,6 +160,14 @@ public class WebSocketMessage implements Serializable {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getEmergencyTypeId() {
+        return emergencyTypeId;
+    }
+
+    public void setEmergencyTypeId(String emergencyTypeId) {
+        this.emergencyTypeId = emergencyTypeId;
     }
 
     public String getEmergencyType() {

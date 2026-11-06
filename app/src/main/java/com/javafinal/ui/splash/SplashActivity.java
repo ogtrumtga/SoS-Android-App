@@ -1,65 +1,30 @@
 package com.javafinal.ui.splash;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.gson.JsonObject;
 import com.javafinal.R;
-import com.javafinal.ui.auth.LoginActivity;
-import com.javafinal.util.MapHelper;
+import com.javafinal.model.AuthModels;
+import com.javafinal.ui.ApiActivity;
+import com.javafinal.viewmodel.AuthViewModel;
+import com.javafinal.viewmodel.SystemViewModel;
 
-public class SplashActivity extends AppCompatActivity {
-
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean navigated = false;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+public class SplashActivity extends ApiActivity {
+    private SystemViewModel system;
+    private AuthViewModel auth;
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        MapHelper.initMapLibre(this);
-        setContentView(R.layout.activity_splash);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        LinearProgressIndicator progressLinear = findViewById(R.id.progressLinear);
-
-        handler.postDelayed(() -> {
-            if (progressLinear != null) {
-                progressLinear.setProgressCompat(100, true);
-            }
-        }, 600);
-
-        handler.postDelayed(this::goToLogin, 1100);
-
-        findViewById(R.id.main).setOnClickListener(v -> goToLogin());
+        setupScreen(R.layout.activity_splash);
+        system = vm(SystemViewModel.class);
+        auth = vm(AuthViewModel.class);
+        findViewById(R.id.progressLinear).setVisibility(android.view.View.GONE);
+        bind("health", (JsonObject response) -> {
+            if (auth.isLoggedIn()) execute("me", auth::loadMe);
+            else goToLogin();
+        }, error -> showApiError(error, this::checkServer), busy -> { if (busy) showLoading("Đang kết nối máy chủ…"); });
+        bind("me", (AuthModels.UserResponse response) -> goToRoleHome(response.getUser()),
+                error -> showApiError(error, () -> execute("me", auth::loadMe)),
+                busy -> { if (busy) showLoading("Đang kiểm tra phiên đăng nhập…"); });
+        checkServer();
     }
-
-    private void goToLogin() {
-        if (navigated) return;
-        navigated = true;
-        handler.removeCallbacksAndMessages(null);
-        Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        handler.removeCallbacksAndMessages(null);
-    }
+    private void checkServer() { execute("health", system::checkHealth); }
 }

@@ -14,13 +14,6 @@ import java.util.Locale;
  */
 public class SosRequest implements Serializable {
 
-    // Các mã emergency_type chuẩn gửi lên API POST /api/sos
-    public static final String TYPE_NGAP_LUT = "NGAP_LUT";
-    public static final String TYPE_Y_TE = "Y_TE";
-    public static final String TYPE_MAC_KET = "MAC_KET";
-    public static final String TYPE_CHAY_NO = "CHAY_NO";
-    public static final String TYPE_NHU_YEU_PHAM = "NHU_YEU_PHAM";
-
     // Chế độ hiển thị visibility
     public static final String VISIBILITY_PUBLIC = "PUBLIC";
     public static final String VISIBILITY_PRIVATE = "PRIVATE";
@@ -93,13 +86,13 @@ public class SosRequest implements Serializable {
 
     // Tọa độ khởi tạo ban đầu
     @SerializedName("initial_lat")
-    private double initialLat;
+    private Double initialLat;
 
     @SerializedName("initial_lng")
-    private double initialLng;
+    private Double initialLng;
 
-    // Đối tượng lồng nhau trả về từ API #08, #16, #17
-    @SerializedName("requester")
+    // Đối tượng lồng nhau trả về từ API #08, #16, #17 (hỗ trợ cả key "requester" và "victim")
+    @SerializedName(value = "requester", alternate = {"victim"})
     private RequesterInfo requester;
 
     @SerializedName("rescuer")
@@ -191,7 +184,7 @@ public class SosRequest implements Serializable {
                 this.rescuerAccuracyM = rescuerLoc.getAccuracyM();
             }
         }
-        if (this.victimLat == 0 && this.initialLat != 0) {
+        if (this.victimLat == 0 && hasInitialLocation()) {
             this.victimLat = this.initialLat;
             this.victimLng = this.initialLng;
         }
@@ -345,16 +338,11 @@ public class SosRequest implements Serializable {
     }
 
     public String getEmergencyTypeLabel() {
-        return getEmergencyTypeLabel(emergencyType);
+        return EmergencyType.resolveLabel(emergencyTypeId, emergencyType);
     }
 
     public static String getEmergencyTypeLabel(String type) {
-        if (TYPE_NGAP_LUT.equals(type)) return "Ngập lụt";
-        if (TYPE_Y_TE.equals(type)) return "Cấp cứu y tế";
-        if (TYPE_MAC_KET.equals(type)) return "Mắc kẹt / Sập đổ";
-        if (TYPE_CHAY_NO.equals(type)) return "Hỏa hoạn / Cháy nổ";
-        if (TYPE_NHU_YEU_PHAM.equals(type)) return "Nhu yếu phẩm";
-        return type != null ? type : "Khẩn cấp";
+        return EmergencyType.resolveLabel(null, type);
     }
 
     public String getStatusLabel() {
@@ -569,7 +557,7 @@ public class SosRequest implements Serializable {
     }
 
     public double getInitialLat() {
-        return initialLat;
+        return initialLat == null ? Double.NaN : initialLat;
     }
 
     public void setInitialLat(double initialLat) {
@@ -577,8 +565,10 @@ public class SosRequest implements Serializable {
     }
 
     public double getInitialLng() {
-        return initialLng;
+        return initialLng == null ? Double.NaN : initialLng;
     }
+
+    public boolean hasInitialLocation() { return initialLat != null && initialLng != null; }
 
     public void setInitialLng(double initialLng) {
         this.initialLng = initialLng;
@@ -588,7 +578,7 @@ public class SosRequest implements Serializable {
         if (victimLat == 0 && locations != null && locations.getVictim() != null) {
             return locations.getVictim().getLat();
         }
-        if (victimLat == 0 && initialLat != 0) {
+        if (victimLat == 0 && hasInitialLocation()) {
             return initialLat;
         }
         return victimLat;
@@ -602,7 +592,7 @@ public class SosRequest implements Serializable {
         if (victimLng == 0 && locations != null && locations.getVictim() != null) {
             return locations.getVictim().getLng();
         }
-        if (victimLng == 0 && initialLng != 0) {
+        if (victimLng == 0 && hasInitialLocation()) {
             return initialLng;
         }
         return victimLng;

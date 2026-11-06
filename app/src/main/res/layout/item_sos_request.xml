@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     style="@style/Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -22,7 +23,7 @@
                 style="@style/Text.Tag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ngập lụt • Công khai" />
+                tools:text="Ngập lụt • Công khai" android:text="@string/data_pending" />
 
             <View
                 android:layout_width="0dp"
@@ -35,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:text="~0.9 km"
+                tools:text="~0.9 km" android:text="@string/data_pending"
                 android:textColor="@color/ink" />
         </LinearLayout>
 
@@ -47,7 +48,7 @@
             android:layout_marginTop="8dp"
             android:maxLines="2"
             android:ellipsize="end"
-            android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển"
+            tools:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" android:text="@string/data_pending"
             android:textSize="15sp" />
 
         <TextView
@@ -56,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Nguyễn Văn An • 0901234567" />
+            tools:text="Nguyễn Văn An • 0901234567" android:text="@string/data_pending" />
 
         <LinearLayout
             android:layout_width="match_parent"

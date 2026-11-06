@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -32,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:text="Điều phối cứu hộ"
+            tools:text="Điều phối cứu hộ" android:text="@string/data_pending"
             android:textSize="16sp" />
 
         <com.google.android.material.button.MaterialButton
@@ -135,7 +136,7 @@
                             style="@style/Text.Caption"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Khoảng cách" />
+                            android:text="Đường thẳng" />
 
                         <TextView
                             android:id="@+id/tvDistanceRemain"
@@ -143,7 +144,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="0.9 km" />
+                            tools:text="0.9 km" android:text="@string/data_pending" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -165,7 +166,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="±8.0m" />
+                            tools:text="±8.0m" android:text="@string/data_pending" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -187,7 +188,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Đã nhận"
+                            tools:text="Đã nhận" android:text="@string/data_pending"
                             android:textColor="@color/red" />
                     </LinearLayout>
                 </LinearLayout>
@@ -217,7 +218,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Nguyễn Văn An • 0901234567"
+                tools:text="Nguyễn Văn An • 0901234567" android:text="@string/data_pending"
                 android:textSize="14.5sp" />
 
             <TextView
@@ -226,7 +227,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/red_soft"
-                android:text="Ngập lụt"
+                tools:text="Ngập lụt" android:text="@string/data_pending"
                 android:textColor="@color/red" />
         </LinearLayout>
 
@@ -238,7 +239,7 @@
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" />
+            tools:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" android:text="@string/data_pending" />
 
         <LinearLayout
             android:layout_width="match_parent"

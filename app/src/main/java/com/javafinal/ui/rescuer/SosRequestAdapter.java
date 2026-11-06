@@ -13,7 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
+import com.javafinal.model.LocationCurrent;
+import com.javafinal.util.SosMapData;
 import com.javafinal.model.SosRequest;
 
 import java.util.ArrayList;
@@ -29,6 +30,11 @@ public class SosRequestAdapter extends RecyclerView.Adapter<SosRequestAdapter.So
 
     private final List<SosRequest> items = new ArrayList<>();
     private final OnSosActionListener listener;
+    private double ownLat = Double.NaN, ownLng = Double.NaN;
+    private boolean actionsEnabled;
+
+    public void setPosition(double lat, double lng) { ownLat = lat; ownLng = lng; notifyDataSetChanged(); }
+    public void setActionsEnabled(boolean enabled) { actionsEnabled = enabled; notifyDataSetChanged(); }
 
     public SosRequestAdapter(List<SosRequest> initialItems, OnSosActionListener listener) {
         if (initialItems != null) {
@@ -57,14 +63,16 @@ public class SosRequestAdapter extends RecyclerView.Adapter<SosRequestAdapter.So
     public void onBindViewHolder(@NonNull SosViewHolder holder, int position) {
         SosRequest req = items.get(position);
         Context context = holder.itemView.getContext();
-        MockDataRepository repo = MockDataRepository.getInstance();
 
         holder.tvPrivacyBadge.setText(req.getEmergencyTypeLabel() + " • " + req.getVisibilityLabel());
         holder.tvIncidentTitle.setText(req.getDescription());
-        holder.tvPeopleSummary.setText(req.getRequesterName() + " • " + req.getRequesterPhone());
+        holder.tvPeopleSummary.setText(safe(req.getRequesterName()) + " • " + safe(req.getRequesterPhone()));
 
-        double distKm = req.getDistanceKmFrom(repo.getRescuerBaseLat(), repo.getRescuerBaseLng());
-        holder.tvDistance.setText(String.format(Locale.US, "~%.1f km", distKm));
+        LocationCurrent victim = SosMapData.victim(req);
+        holder.tvDistance.setText(victim != null && SosMapData.valid(ownLat, ownLng)
+                ? String.format(Locale.US, "~%.1f km (đường thẳng)", SosRequest.computeHaversineKm(ownLat, ownLng, victim.getLat(), victim.getLng()))
+                : "Chưa có GPS");
+        holder.btnAccept.setEnabled(actionsEnabled);
 
         boolean isPrivate = SosRequest.VISIBILITY_PRIVATE.equals(req.getVisibility());
         if (isPrivate) {
@@ -94,6 +102,7 @@ public class SosRequestAdapter extends RecyclerView.Adapter<SosRequestAdapter.So
     public int getItemCount() {
         return items.size();
     }
+    private static String safe(String value) { return value == null || value.isEmpty() ? "—" : value; }
 
     static class SosViewHolder extends RecyclerView.ViewHolder {
         final TextView tvPrivacyBadge;

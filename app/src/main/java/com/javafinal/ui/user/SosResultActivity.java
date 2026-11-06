@@ -5,103 +5,75 @@ import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
+import com.javafinal.model.SosApiModels;
+import com.javafinal.model.SosLog;
 import com.javafinal.model.SosRequest;
+import com.javafinal.ui.ApiActivity;
+import com.javafinal.viewmodel.SosRules;
+import com.javafinal.viewmodel.SosViewModel;
+import com.javafinal.util.ApiDisplay;
 
-public class SosResultActivity extends AppCompatActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_sos_result);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        SosRequest sos = repo.getLastViewedSos();
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> navigateToHome());
-
-        ImageView imgResult = findViewById(R.id.imgResult);
-        TextView tvStatusBadge = findViewById(R.id.tvStatusBadge);
-        TextView tvResultTitle = findViewById(R.id.tvResultTitle);
-
-        TextView tvSosCode = findViewById(R.id.tvSosCode);
-        TextView tvClosedAt = findViewById(R.id.tvClosedAt);
-        TextView tvRescueTeam = findViewById(R.id.tvRescueTeam);
-        TextView tvEvacuated = findViewById(R.id.tvEvacuated);
-        TextView tvShelter = findViewById(R.id.tvShelter);
-
-        MaterialButton btnBackToMap = findViewById(R.id.btnBackToMap);
-        MaterialButton btnNotifyFamily = findViewById(R.id.btnNotifyFamily);
-
-        boolean isCancelled = SosRequest.STATUS_CANCELLED.equals(sos.getStatus());
-
-        if (isCancelled) {
-            imgResult.setImageResource(R.drawable.ic_close);
-            imgResult.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.amber_soft)));
-            imgResult.setImageTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.amber)));
-            tvStatusBadge.setText("ĐÃ HỦY");
-            tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.amber_soft)));
-            tvStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.amber));
-            tvResultTitle.setText("Đã hủy yêu cầu SOS");
-        } else {
-            imgResult.setImageResource(R.drawable.ic_check);
-            imgResult.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.green_soft)));
-            imgResult.setImageTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.green)));
-            tvStatusBadge.setText("HOÀN THÀNH");
-            tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.green_soft)));
-            tvStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.green));
-            tvResultTitle.setText("Đã hoàn thành cứu hộ");
-        }
-
-        tvSosCode.setText(sos.getShortId());
-        tvClosedAt.setText(sos.getCreatedAt());
-        tvRescueTeam.setText(sos.getTeamName() != null
-                ? "Đội hỗ trợ: " + sos.getTeamName()
-                : "Chưa có đội tiếp nhận");
-        tvEvacuated.setText("Sự cố: " + sos.getEmergencyTypeLabel());
-        tvShelter.setText(sos.getDescription());
-
-        btnBackToMap.setOnClickListener(v -> navigateToHome());
-
-        btnNotifyFamily.setOnClickListener(v -> {
-            Intent share = new Intent(Intent.ACTION_SEND);
-            share.setType("text/plain");
-            share.putExtra(Intent.EXTRA_TEXT,
-                    "Tôi đã an toàn! (" + sos.getShortId() + ")");
+public class SosResultActivity extends ApiActivity {
+    private SosViewModel sos;
+    private SosRequest result;
+    private String sosId;
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        setupScreen(R.layout.activity_sos_result);
+        if (!requireSession()) return;
+        sos = vm(SosViewModel.class);
+        sosId = getIntent().getStringExtra(SOS_ID);
+        ((MaterialToolbar) findViewById(R.id.toolbar)).setNavigationOnClickListener(v -> home());
+        findViewById(R.id.btnBackToMap).setOnClickListener(v -> home());
+        findViewById(R.id.btnNotifyFamily).setEnabled(false);
+        bind("result", (SosApiModels.SosSingleResponse response) -> {
+            result = response.getSos();
+            if (result == null) { showStatus("Không tìm thấy ca cứu hộ.", this::load); return; }
+            if (!SosRules.isTerminal(result.getStatus())) { openSos(TrackSosActivity.class, sosId); finish(); return; }
+            clearStatus(); render(); execute("logs", () -> sos.loadLogs(sosId));
+        }, error -> showApiError(error, this::load), busy -> { if (busy) showLoading("Đang tải kết quả cứu hộ…"); });
+        bind("logs", (SosApiModels.SosLogsResponse response) -> {
+            StringBuilder content = new StringBuilder();
+            if (response.getLogs() != null) for (SosLog entry : response.getLogs()) {
+                if (entry == null) continue;
+                if (content.length() > 0) content.append("\n\n");
+                content.append(ApiDisplay.time(entry.getCreatedAt())).append(" • ").append(ApiDisplay.action(entry.getAction()))
+                        .append("\n").append(text(entry.getDescription()));
+            }
+            ((TextView) findViewById(R.id.tvSosLogs)).setText(content.length() == 0 ? "Chưa có nhật ký." : content.toString());
+        }, error -> { ((TextView) findViewById(R.id.tvSosLogs)).setText("Không tải được nhật ký."); showApiError(error, () -> execute("logs", () -> sos.loadLogs(sosId))); }, null);
+        findViewById(R.id.btnNotifyFamily).setOnClickListener(v -> {
+            if (result == null) return;
+            Intent share = new Intent(Intent.ACTION_SEND).setType("text/plain")
+                    .putExtra(Intent.EXTRA_TEXT, "Tôi đã an toàn! SOS " + result.getShortId() + " • " + result.getStatusLabel());
             startActivity(Intent.createChooser(share, "Chia sẻ an toàn"));
         });
+        if (sosId == null) showStatus("Chưa có mã SOS để hiển thị kết quả.", null); else load();
     }
-
-    private void navigateToHome() {
-        Intent intent = new Intent(SosResultActivity.this, HomeActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
+    private void load() { if (sosId != null) execute("result", () -> sos.loadDetail(sosId)); }
+    private void render() {
+        boolean cancelled = "CANCELLED".equals(result.getStatus());
+        int color = ContextCompat.getColor(this, cancelled ? R.color.amber : R.color.green);
+        int soft = ContextCompat.getColor(this, cancelled ? R.color.amber_soft : R.color.green_soft);
+        ImageView icon = findViewById(R.id.imgResult);
+        icon.setImageResource(cancelled ? R.drawable.ic_close : R.drawable.ic_check);
+        icon.setImageTintList(ColorStateList.valueOf(color)); icon.setBackgroundTintList(ColorStateList.valueOf(soft));
+        TextView badge = findViewById(R.id.tvStatusBadge);
+        badge.setText(cancelled ? "ĐÃ HỦY" : "HOÀN THÀNH"); badge.setTextColor(color);
+        badge.setBackgroundTintList(ColorStateList.valueOf(soft));
+        ((TextView) findViewById(R.id.tvResultTitle)).setText(cancelled ? "Đã hủy yêu cầu SOS" : "Đã hoàn thành cứu hộ");
+        ((TextView) findViewById(R.id.tvSosCode)).setText(result.getShortId());
+        ((TextView) findViewById(R.id.tvClosedAt)).setText(ApiDisplay.time(result.getUpdatedAt()));
+        ((TextView) findViewById(R.id.tvEvacuated)).setText("Sự cố: " + result.getEmergencyTypeLabel());
+        ((TextView) findViewById(R.id.tvRescueTeam)).setText("Đội hỗ trợ: " + text(result.getTeamName()));
+        ((TextView) findViewById(R.id.tvShelter)).setText(text(result.getDescription()));
+        ((TextView) findViewById(R.id.tvEndReason)).setText("Lý do kết thúc: " + ApiDisplay.endReason(result.getEndReason()));
+        findViewById(R.id.btnNotifyFamily).setEnabled(true);
+    }
+    private void home() {
+        startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)); finish();
     }
 }

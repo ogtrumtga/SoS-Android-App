@@ -74,7 +74,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="● Đang xử lý ca cứu hộ"
+                    tools:text="● Đang xử lý ca cứu hộ" android:text="@string/data_pending"
                     android:textColor="@color/red"
                     android:textSize="13.5sp" />
 
@@ -106,7 +106,7 @@
                         style="@style/Text.Headline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4"
+                        tools:text="4" android:text="@string/data_pending"
                         android:textSize="17sp" />
 
                     <TextView
@@ -132,7 +132,7 @@
                         style="@style/Text.Headline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3"
+                        tools:text="3" android:text="@string/data_pending"
                         android:textSize="17sp" />
 
                     <TextView
@@ -157,7 +157,7 @@
                         style="@style/Text.Headline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1"
+                        tools:text="1" android:text="@string/data_pending"
                         android:textColor="@color/red"
                         android:textSize="17sp" />
 
@@ -197,20 +197,6 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:text="Tất cả" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipUrgent"
-                style="@style/Chip.Minimal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ngập lụt" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipNearMe"
-                style="@style/Chip.Minimal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Y tế" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPrivate"

@@ -3,71 +3,53 @@ package com.javafinal.ui.rescuer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
+import com.javafinal.model.SosApiModels;
 import com.javafinal.model.SosRequest;
-import com.javafinal.util.NavigationHelper;
+import com.javafinal.ui.ApiActivity;
+import com.javafinal.viewmodel.RescuerViewModel;
+import com.javafinal.viewmodel.SosRules;
 
-public class ConfirmCompleteActivity extends AppCompatActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_confirm_complete);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        String sosId = getIntent().getStringExtra("SOS_ID");
-        SosRequest mission = repo.getSosById(sosId);
-
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-
-        TextView tvSosCode = findViewById(R.id.tvSosCode);
-        TextView tvEmergencyNature = findViewById(R.id.tvEmergencyNature);
-        TextView tvAddress = findViewById(R.id.tvAddress);
-        TextView tvVictimStatus = findViewById(R.id.tvVictimStatus);
-
-        MaterialCheckBox cbConfirmComplete = findViewById(R.id.cbConfirmComplete);
-        MaterialButton btnCompleteMission = findViewById(R.id.btnCompleteMission);
-
-        tvSosCode.setText("SOS " + mission.getShortId());
-        tvEmergencyNature.setText(mission.getEmergencyTypeLabel());
-        tvVictimStatus.setText(mission.getRequesterName() + " • " + mission.getRequesterPhone());
-        tvAddress.setText(mission.getDescription());
-
-        cbConfirmComplete.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            btnCompleteMission.setEnabled(isChecked);
-        });
-
-        btnCompleteMission.setOnClickListener(v -> {
-            if (!cbConfirmComplete.isChecked()) {
-                NavigationHelper.showSnack(this, "Vui lòng xác nhận đã hỗ trợ nạn nhân an toàn");
-                return;
+public class ConfirmCompleteActivity extends ApiActivity {
+    private RescuerViewModel rescuer;
+    private SosRequest mission;
+    private String sosId;
+    private boolean busy;
+    private MaterialCheckBox confirm;
+    private MaterialButton complete;
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        setupScreen(R.layout.activity_confirm_complete);
+        if (!requireSession()) return;
+        rescuer = vm(RescuerViewModel.class);
+        sosId = getIntent().getStringExtra(SOS_ID);
+        ((MaterialToolbar) findViewById(R.id.toolbar)).setNavigationOnClickListener(v -> finish());
+        confirm = findViewById(R.id.cbConfirmComplete);
+        complete = findViewById(R.id.btnCompleteMission);
+        complete.setEnabled(false);
+        confirm.setOnCheckedChangeListener((button, checked) -> updateButton());
+        bind("mission", (SosApiModels.ActiveSosResponse response) -> {
+            mission = response.isActive() ? response.getSos() : null;
+            if (mission == null || !mission.getId().equals(sosId)) {
+                mission = null; updateButton(); showStatus("Đây không còn là ca cứu hộ đang xử lý của đội.", this::load); return;
             }
-
-            repo.completeMission(mission);
-            Intent intent = new Intent(ConfirmCompleteActivity.this, RescuerHomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
-        });
+            clearStatus();
+            ((TextView) findViewById(R.id.tvSosCode)).setText("SOS " + mission.getShortId());
+            ((TextView) findViewById(R.id.tvEmergencyNature)).setText(mission.getEmergencyTypeLabel());
+            ((TextView) findViewById(R.id.tvVictimStatus)).setText(text(mission.getRequesterName()) + " • " + text(mission.getRequesterPhone()));
+            ((TextView) findViewById(R.id.tvAddress)).setText(text(mission.getDescription()));
+            if (!SosRules.canComplete(mission.getStatus())) showStatus("Chỉ có thể hoàn thành sau khi đã tới hiện trường.", this::load);
+            updateButton();
+        }, error -> showApiError(error, this::load), loading -> { if (loading) showLoading("Đang kiểm tra ca cứu hộ…"); });
+        bind("complete", (SosApiModels.MissionActionResponse response) -> {
+            startActivity(new Intent(this, RescuerHomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)); finish();
+        }, error -> showApiError(error, this::load), loading -> { busy = loading; updateButton(); if (loading) showLoading("Đang hoàn thành ca cứu hộ…"); });
+        complete.setOnClickListener(v -> { if (confirm.isChecked()) execute("complete", () -> rescuer.completeSos(sosId)); });
     }
+    private void updateButton() { complete.setEnabled(!busy && confirm.isChecked() && mission != null && SosRules.canComplete(mission.getStatus())); }
+    private void load() { execute("mission", rescuer::loadMyActive); }
+    @Override protected void onStart() { super.onStart(); if (rescuer != null) load(); }
 }

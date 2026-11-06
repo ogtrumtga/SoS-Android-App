@@ -33,6 +33,14 @@ public class RescueTeamMember implements Serializable {
     @SerializedName("created_at")
     private String createdAt;
 
+    /** Họ tên thành viên trả về trực tiếp từ API GET /api/rescuer/teams */
+    @SerializedName(value = "name", alternate = {"full_name"})
+    private String name;
+
+    /** Số điện thoại thành viên trả về trực tiếp từ API GET /api/rescuer/teams */
+    @SerializedName("phone")
+    private String phone;
+
     /** Thông tin người dùng đính kèm (nếu có) */
     @SerializedName("user")
     private User user;
@@ -94,5 +102,23 @@ public class RescueTeamMember implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getName() {
+        if (name != null && !name.trim().isEmpty()) return name;
+        return user != null ? user.getFullName() : null;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPhone() {
+        if (phone != null && !phone.trim().isEmpty()) return phone;
+        return user != null ? user.getPhone() : null;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

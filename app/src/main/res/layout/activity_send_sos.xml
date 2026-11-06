@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
@@ -60,7 +61,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="10.7768, 106.7008"
+                            tools:text="10.7768, 106.7008" android:text="@string/data_pending"
                             android:textSize="13.5sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -91,43 +92,17 @@
                 app:chipSpacingVertical="6dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipFlood"
-                    style="@style/Chip.Minimal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="Ngập lụt" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipMedical"
-                    style="@style/Chip.Minimal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Y tế" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipCollapse"
-                    style="@style/Chip.Minimal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Mắc kẹt" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipFood"
-                    style="@style/Chip.Minimal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Nhu yếu phẩm" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipFire"
-                    style="@style/Chip.Minimal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hỏa hoạn" />
             </com.google.android.material.chip.ChipGroup>
+
+            <TextView
+                android:id="@+id/tvSelectedTypeDescription"
+                style="@style/Text.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:visibility="gone"
+                tools:text="Ngập lụt, triều cường dâng cao cô lập nhà cửa khu dân cư"
+                tools:visibility="visible" />
 
             <!-- 3. Mô tả -->
             <TextView
@@ -152,7 +127,7 @@
                     android:gravity="top"
                     android:inputType="textMultiLine"
                     android:minLines="2"
-                    android:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" />
+                    tools:text="Nước ngập tầng 1, cần xuồng đưa 2 người già di chuyển" android:text="" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.chip.ChipGroup

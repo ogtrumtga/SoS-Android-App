@@ -1,252 +1,191 @@
 package com.javafinal.ui.user;
 
-import android.content.Intent;
-import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.javafinal.R;
-import com.javafinal.data.MockDataRepository;
+import com.javafinal.model.EmergencyType;
+import com.javafinal.model.PublicSosPoint;
+import com.javafinal.model.SosApiModels;
 import com.javafinal.model.SosRequest;
+import com.javafinal.model.User;
+import com.javafinal.network.ApiError;
+import com.javafinal.ui.MapApiActivity;
+import com.javafinal.util.DeviceLocation;
 import com.javafinal.util.MapHelper;
 import com.javafinal.util.NavigationHelper;
-
-import org.maplibre.android.annotations.Icon;
+import com.javafinal.util.SosMapData;
+import com.javafinal.viewmodel.EmergencyTypeViewModel;
+import com.javafinal.viewmodel.RealtimeViewModel;
+import com.javafinal.viewmodel.SosViewModel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.geometry.LatLng;
-import org.maplibre.android.maps.MapLibreMap;
-import org.maplibre.android.maps.MapView;
 
-import java.util.List;
+public class HomeActivity extends MapApiActivity {
+    private SosViewModel sos;
+    private EmergencyTypeViewModel types;
+    private RealtimeViewModel realtime;
+    private DeviceLocation gps;
+    private List<PublicSosPoint> points = Collections.emptyList();
+    private SosRequest active;
+    private boolean activeReady, mapLoading, activeLoading, centered;
+    private ApiError mapError, activeError;
+    private String filter = "ALL";
+    private String filterId;
 
-public class HomeActivity extends AppCompatActivity {
-
-    private MapView mapView;
-    private MapLibreMap mapLibreMap;
-
-    private TextView tvUserGreeting;
-    private MaterialCardView cardMyActiveSos;
-    private TextView tvActiveSosSummary;
-    private String currentFilter = "ALL";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        MapHelper.initMapLibre(this);
-        setContentView(R.layout.activity_home);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        setupMapScreen(R.layout.activity_home);
+        if (!requireSession()) return;
+        sos = vm(SosViewModel.class);
+        types = vm(EmergencyTypeViewModel.class);
+        realtime = vm(RealtimeViewModel.class);
+        findViewById(R.id.cardMyActiveSos).setVisibility(View.GONE);
+        findViewById(R.id.btnSos).setEnabled(false);
+        gps = new DeviceLocation(this, location -> renderMap(), message -> NavigationHelper.showSnack(this, message));
+        bind("types", (SosApiModels.EmergencyTypeListResponse response) -> {
+            renderTypeChips(response.getData());
+            renderBanner();
+            renderMap();
+        }, error -> { }, null);
+        bind("public", (SosApiModels.PublicMapResponse response) -> {
+            points = response.getData() == null ? Collections.emptyList() : response.getData();
+            mapError = null; renderMap(); updateStatus();
+        }, error -> { mapError = error; updateStatus(); }, busy -> { mapLoading = busy; if (busy) updateStatus(); });
+        bind("active", (SosApiModels.ActiveSosResponse response) -> {
+            active = response.isActive() ? response.getSos() : null;
+            activeReady = true; activeError = null; renderBanner(); updateStatus();
+        }, error -> { activeError = error; updateStatus(); }, busy -> { activeLoading = busy; if (busy) updateStatus(); });
+        initMap(R.id.mapView, state, this::renderMap);
+        findViewById(R.id.btnTrackActiveSos).setOnClickListener(v -> openActive());
+        findViewById(R.id.btnSos).setOnClickListener(v -> {
+            if (active != null) openActive();
+            else startActivity(new android.content.Intent(this, SendSosActivity.class));
         });
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-        repo.setCurrentRole(MockDataRepository.ROLE_USER);
-
-        tvUserGreeting = findViewById(R.id.tvUserGreeting);
-        cardMyActiveSos = findViewById(R.id.cardMyActiveSos);
-        tvActiveSosSummary = findViewById(R.id.tvActiveSosSummary);
-        MaterialButton btnTrackActiveSos = findViewById(R.id.btnTrackActiveSos);
-
-        ChipGroup chipGroupFilter = findViewById(R.id.chipGroupFilter);
-        MaterialButton fabLayers = findViewById(R.id.fabLayers);
-        MaterialButton fabMyLocation = findViewById(R.id.fabMyLocation);
-        MaterialButton btnSos = findViewById(R.id.btnSos);
-        MaterialButton btnNotifications = findViewById(R.id.btnNotifications);
-        MaterialButton btnProfile = findViewById(R.id.btnProfile);
-        BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-
-        mapView = findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-
-        updateHeaderAndActiveSosBanner();
-
-        mapView.getMapAsync(map -> {
-            this.mapLibreMap = map;
-            MapHelper.applyDefaultStyle(map, style -> {
-                MapHelper.moveCamera(map, repo.getMyLat(), repo.getMyLng(), 13.8);
-                renderPublicMapMarkers();
-            });
-        });
-
-        btnTrackActiveSos.setOnClickListener(v -> {
-            SosRequest active = repo.getMyActiveUserSos();
-            if (active != null) {
-                repo.setLastViewedSos(active);
-                startActivity(new Intent(HomeActivity.this, TrackSosActivity.class));
-            }
-        });
-
-        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.isEmpty()) return;
-            int id = checkedIds.get(0);
-            if (id == R.id.chipBoat) {
-                currentFilter = SosRequest.TYPE_NGAP_LUT;
-            } else if (id == R.id.chipMedical) {
-                currentFilter = SosRequest.TYPE_Y_TE;
-            } else if (id == R.id.chipFood) {
-                currentFilter = SosRequest.TYPE_NHU_YEU_PHAM;
+        ((ChipGroup) findViewById(R.id.chipGroupFilter)).setOnCheckedStateChangeListener((group, ids) -> {
+            int id = ids.isEmpty() ? 0 : ids.get(0);
+            View checked = id == 0 ? null : group.findViewById(id);
+            EmergencyType chosen = checked != null && checked.getTag() instanceof EmergencyType
+                    ? (EmergencyType) checked.getTag() : null;
+            if (chosen == null || id == R.id.chipAll) {
+                filter = "ALL";
+                filterId = null;
             } else {
-                currentFilter = "ALL";
+                filter = chosen.getName() != null ? chosen.getName() : "ALL";
+                filterId = chosen.getId();
             }
-            renderPublicMapMarkers();
+            renderMap();
         });
-
-        fabLayers.setOnClickListener(v ->
-                MapHelper.showLayerSwitchDialog(this, mapLibreMap, this::renderPublicMapMarkers));
-
-        fabMyLocation.setOnClickListener(v ->
-                MapHelper.moveCamera(mapLibreMap, repo.getMyLat(), repo.getMyLng(), 15.2));
-
-        btnSos.setOnClickListener(v -> {
-            SosRequest active = repo.getMyActiveUserSos();
-            if (active != null) {
-                NavigationHelper.showConfirmSheet(
-                        this,
-                        null,
-                        "Đang có yêu cầu SOS",
-                        active.getEmergencyTypeLabel() + " • " + active.getStatusLabel(),
-                        "Theo dõi yêu cầu",
-                        false,
-                        () -> {
-                            repo.setLastViewedSos(active);
-                            startActivity(new Intent(HomeActivity.this, TrackSosActivity.class));
-                        },
-                        "Tạo mới",
-                        () -> startActivity(new Intent(HomeActivity.this, SendSosActivity.class))
-                );
-            } else {
-                startActivity(new Intent(HomeActivity.this, SendSosActivity.class));
-            }
+        findViewById(R.id.fabLayers).setOnClickListener(v -> MapHelper.showLayerSwitchDialog(this, map, this::renderMap));
+        findViewById(R.id.fabMyLocation).setOnClickListener(v -> {
+            gps.request();
+            Location location = gps.getLatest();
+            if (mapReady && location != null) MapHelper.moveCamera(map, location.getLatitude(), location.getLongitude(), 15);
         });
-
-        btnNotifications.setOnClickListener(v -> NavigationHelper.showNotificationsDialog(this));
-        btnProfile.setOnClickListener(v ->
-                NavigationHelper.showProfileDialog(this, this::updateHeaderAndActiveSosBanner));
-
-        bottomNav.setSelectedItemId(R.id.nav_home);
-        bottomNav.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                return true;
-            } else if (itemId == R.id.nav_requests) {
-                SosRequest active = repo.getMyActiveUserSos();
-                if (active != null) {
-                    repo.setLastViewedSos(active);
-                    startActivity(new Intent(HomeActivity.this, TrackSosActivity.class));
-                } else {
-                    startActivity(new Intent(HomeActivity.this, SosResultActivity.class));
-                }
-                return false;
-            } else if (itemId == R.id.nav_alerts) {
-                NavigationHelper.showNotificationsDialog(this);
-                return false;
-            } else if (itemId == R.id.nav_settings) {
-                NavigationHelper.showProfileDialog(this, this::updateHeaderAndActiveSosBanner);
-                return false;
-            }
+        findViewById(R.id.btnNotifications).setOnClickListener(v -> NavigationHelper.showNotificationsDialog(this));
+        findViewById(R.id.btnProfile).setOnClickListener(v -> NavigationHelper.showProfileDialog(this, this::renderBanner));
+        BottomNavigationView bottom = findViewById(R.id.bottomNav);
+        bottom.setSelectedItemId(R.id.nav_home);
+        bottom.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_home) { refresh(); return true; }
+            if (item.getItemId() == R.id.nav_requests) {
+                if (active != null) openActive();
+                else showStatus("Bạn chưa có SOS đang hoạt động.", this::refresh);
+            } else if (item.getItemId() == R.id.nav_alerts) NavigationHelper.showNotificationsDialog(this);
+            else if (item.getItemId() == R.id.nav_settings) NavigationHelper.showProfileDialog(this, this::renderBanner);
             return false;
         });
+        realtime.getMessages().observe(this, message -> {
+            if (message != null && !"PONG".equals(message.getEvent()) && !"SUBSCRIBED".equals(message.getEvent())) refresh();
+        });
+        realtime.getErrors().observe(this, error -> { if (error != null && error.isUnauthorized()) showApiError(error, null); });
     }
-
-    private void updateHeaderAndActiveSosBanner() {
-        MockDataRepository repo = MockDataRepository.getInstance();
-        tvUserGreeting.setText("Bản đồ cứu hộ");
-
-        SosRequest active = repo.getMyActiveUserSos();
-        if (active != null) {
-            cardMyActiveSos.setVisibility(View.VISIBLE);
-            tvActiveSosSummary.setText("● " + active.getEmergencyTypeLabel() + " • " + active.getStatusLabel());
-        } else {
-            cardMyActiveSos.setVisibility(View.GONE);
+    private void refresh() {
+        execute("types", types::loadAll);
+        execute("public", sos::loadPublicMap);
+        execute("active", sos::loadMyActive);
+    }
+    private void renderTypeChips(List<EmergencyType> items) {
+        ChipGroup group = findViewById(R.id.chipGroupFilter);
+        if (group == null) return;
+        for (int i = group.getChildCount() - 1; i >= 0; i--) {
+            View child = group.getChildAt(i);
+            if (child.getId() != R.id.chipAll) group.removeViewAt(i);
+        }
+        if (items == null) return;
+        for (EmergencyType type : items) {
+            if (type == null) continue;
+            Chip chip = (Chip) getLayoutInflater().inflate(R.layout.item_chip_filter, group, false);
+            chip.setId(View.generateViewId());
+            chip.setText(type.getDisplayLabel());
+            chip.setTag(type);
+            group.addView(chip);
+            boolean matchedById = filterId != null && type.getId() != null && filterId.equalsIgnoreCase(type.getId());
+            boolean matchedByName = !"ALL".equals(filter) && type.getName() != null && filter.equalsIgnoreCase(type.getName());
+            if (matchedById || matchedByName) chip.setChecked(true);
+        }
+        if (group.getCheckedChipId() == View.NO_ID) {
+            Chip chipAll = group.findViewById(R.id.chipAll);
+            if (chipAll != null) chipAll.setChecked(true);
         }
     }
-
-    private void renderPublicMapMarkers() {
-        if (mapLibreMap == null) return;
-        mapLibreMap.clear();
-
-        MockDataRepository repo = MockDataRepository.getInstance();
-
-        Icon myIcon = MapHelper.createPinIcon(this, Color.parseColor("#111111"), "BẠN");
-        mapLibreMap.addMarker(new MarkerOptions()
-                .position(new LatLng(repo.getMyLat(), repo.getMyLng()))
-                .title("Vị trí của bạn")
-                .icon(myIcon));
-
-        List<SosRequest> publicList = repo.getPublicMapSosList(currentFilter);
-        Icon publicSosIcon = MapHelper.createPinIcon(this, Color.parseColor("#E5383B"), "SOS");
-
-        for (SosRequest s : publicList) {
-            double areaLat = s.getAreaLat();
-            double areaLng = s.getAreaLng();
-
-            MapHelper.addFloodZonePolygon(mapLibreMap, areaLat, areaLng, 0.0028);
-
-            mapLibreMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(areaLat, areaLng))
-                    .title(s.getEmergencyTypeLabel())
-                    .snippet(s.getDescription())
-                    .icon(publicSosIcon));
+    private boolean matchesFilter(PublicSosPoint point) {
+        if ("ALL".equals(filter)) return true;
+        if (filterId != null && point.getEmergencyTypeId() != null && filterId.equalsIgnoreCase(point.getEmergencyTypeId())) {
+            return true;
+        }
+        return point.getEmergencyType() != null && filter.equalsIgnoreCase(point.getEmergencyType());
+    }
+    private void renderBanner() {
+        User user = factory.getSession().getUser();
+        ((TextView) findViewById(R.id.tvUserGreeting)).setText(user == null ? "Bản đồ cứu hộ" : "Xin chào, " + text(user.getFullName()));
+        findViewById(R.id.cardMyActiveSos).setVisibility(active == null ? View.GONE : View.VISIBLE);
+        if (active != null) ((TextView) findViewById(R.id.tvActiveSosSummary)).setText(active.getEmergencyTypeLabel() + " • " + active.getStatusLabel());
+        findViewById(R.id.btnSos).setEnabled(activeReady);
+    }
+    private void updateStatus() {
+        if (mapError != null || activeError != null) showApiError(mapError != null ? mapError : activeError, this::refresh);
+        else if (mapLoading || activeLoading) showLoading("Đang tải bản đồ cứu hộ…");
+        else if (points.isEmpty()) showStatus("Chưa có cảnh báo SOS công khai.", this::refresh);
+        else clearStatus();
+    }
+    private void openActive() { if (active != null) openSos(TrackSosActivity.class, active.getId()); }
+    private void renderMap() {
+        if (!mapReady) return;
+        map.clear();
+        List<LatLng> bounds = new ArrayList<>();
+        Location own = gps.getLatest();
+        if (own != null) {
+            LatLng position = new LatLng(own.getLatitude(), own.getLongitude());
+            bounds.add(position);
+            map.addMarker(new MarkerOptions().position(position).title("Vị trí của bạn")
+                    .icon(MapHelper.createPinIcon(this, android.graphics.Color.BLACK, "BẠN")));
+        }
+        for (PublicSosPoint point : points) {
+            if (point == null || !matchesFilter(point)
+                    || !SosMapData.valid(point.getAreaLat(), point.getAreaLng())) continue;
+            bounds.add(new LatLng(point.getAreaLat(), point.getAreaLng()));
+            MapHelper.addFloodZonePolygon(map, point.getAreaLat(), point.getAreaLng(), 0.005);
+            map.addMarker(new MarkerOptions().position(new LatLng(point.getAreaLat(), point.getAreaLng()))
+                    .title(point.getEmergencyTypeLabel()).snippet("Vị trí đã làm mờ • " + text(point.getCreatedAt()))
+                    .icon(MapHelper.createPinIcon(this, android.graphics.Color.parseColor("#E5383B"), "SOS")));
+        }
+        if (!centered && !bounds.isEmpty()) {
+            if (bounds.size() == 1) MapHelper.moveCamera(map, bounds.get(0).getLatitude(), bounds.get(0).getLongitude(), 13);
+            else MapHelper.fitRouteBounds(map, bounds, 100);
+            centered = true;
         }
     }
-
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         super.onStart();
-        if (mapView != null) mapView.onStart();
+        if (sos != null) { renderBanner(); refresh(); realtime.connect(); gps.request(); }
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mapView != null) mapView.onResume();
-        updateHeaderAndActiveSosBanner();
-        if (mapLibreMap != null) renderPublicMapMarkers();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mapView != null) mapView.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mapView != null) mapView.onStop();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        if (mapView != null) mapView.onLowMemory();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mapView != null) mapView.onDestroy();
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (mapView != null) mapView.onSaveInstanceState(outState);
-    }
+    @Override protected void onStop() { if (realtime != null) realtime.disconnect(); super.onStop(); }
 }
