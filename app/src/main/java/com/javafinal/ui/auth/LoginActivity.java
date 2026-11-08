@@ -1,5 +1,8 @@
 package com.javafinal.ui.auth;
 
+import android.content.Intent;
+import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
@@ -22,6 +25,7 @@ import com.javafinal.viewmodel.AuthViewModel;
 import java.util.Locale;
 
 public class LoginActivity extends ApiActivity {
+    public static final String TELEGRAM_BOT_URL = "https://t.me/sos_rescue_bot";
     private AuthViewModel auth;
     private View stepPhone, stepOtp;
     private TextInputEditText phoneInput;
@@ -72,6 +76,15 @@ public class LoginActivity extends ApiActivity {
                 this::otpError, this::setBusy);
         sendButton.setOnClickListener(v -> requestOtp());
         resendButton.setOnClickListener(v -> requestOtp());
+        TextView botLink = findViewById(R.id.tvTelegramBotLink);
+        if (botLink != null) {
+            botLink.setPaintFlags(botLink.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            botLink.setOnClickListener(v -> openTelegramBot());
+        }
+        View openBotBtn = findViewById(R.id.btnOpenTelegramBot);
+        if (openBotBtn != null) openBotBtn.setOnClickListener(v -> openTelegramBot());
+        View botCard = findViewById(R.id.cardTelegramBot);
+        if (botCard != null) botCard.setOnClickListener(v -> openTelegramBot());
         verifyButton.setOnClickListener(v -> {
             StringBuilder code = new StringBuilder();
             for (EditText input : otpInputs) code.append(input.getText().toString().trim());
@@ -83,6 +96,10 @@ public class LoginActivity extends ApiActivity {
                 if (stepOtp.getVisibility() == View.VISIBLE) showPhone(); else finish();
             }
         });
+    }
+    private void openTelegramBot() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(TELEGRAM_BOT_URL));
+        startActivity(intent);
     }
     private void requestOtp() {
         String phone = stepOtp.getVisibility() == View.VISIBLE ? otpPhone

@@ -81,6 +81,47 @@
                     tools:text="0901234567" android:text="" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardTelegramBot"
+                style="@style/Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/fill">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        style="@style/Text.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Để nhận mã OTP, vui lòng mở Bot Telegram và nhấn &quot;Chia sẻ số điện thoại&quot;:" />
+
+                    <TextView
+                        android:id="@+id/tvTelegramBotLink"
+                        style="@style/Text.Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="https://t.me/sos_rescue_bot"
+                        android:textColor="@color/ink" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenTelegramBot"
+                        style="@style/Button.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="10dp"
+                        android:text="Mở Bot Telegram (@sos_rescue_bot)"
+                        app:icon="@drawable/ic_send"
+                        app:iconGravity="textStart" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSendOtp"
                 style="@style/Button.Primary"
