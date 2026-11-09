@@ -28,6 +28,7 @@ public class RescuerHomeActivity extends ApiActivity {
     private RescuerViewModel rescuer;
     private EmergencyTypeViewModel types;
     private RealtimeViewModel realtime;
+    private RealtimeViewModel.ConnectionState realtimeState = RealtimeViewModel.ConnectionState.DISCONNECTED;
     private SosRequestAdapter adapter;
     private SosRequest active;
     private List<SosRequest> queue = Collections.emptyList();
@@ -95,22 +96,31 @@ public class RescuerHomeActivity extends ApiActivity {
             renderQueue();
         });
         findViewById(R.id.btnOpenActiveMission).setOnClickListener(v -> openActive());
-        findViewById(R.id.btnEmergencyAlert).setOnClickListener(v -> NavigationHelper.showNotificationsDialog(this));
+        findViewById(R.id.btnEmergencyAlert).setOnClickListener(v -> NavigationHelper.openNotifications(this));
         findViewById(R.id.btnProfile).setOnClickListener(v -> NavigationHelper.showProfileDialog(this, this::refresh));
         BottomNavigationView bottom = findViewById(R.id.bottomNav);
         bottom.setSelectedItemId(R.id.nav_rescuer_requests);
         bottom.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_rescuer_requests) { refresh(); return true; }
-            if (id == R.id.nav_rescuer_team) NavigationHelper.showRescueTeamSheet(this, this::refresh);
-            else if (active != null) openActive();
-            else showStatus("Đội chưa có ca cứu hộ đang xử lý.", this::refresh);
+            if (id == R.id.nav_rescuer_team) startActivity(new android.content.Intent(this, RescueTeamActivity.class));
+            else if (id == R.id.nav_rescuer_map) startActivity(new android.content.Intent(this, RescuerMapActivity.class));
+            else if (id == R.id.nav_rescuer_missions) {
+                if (active != null) openActive();
+                else showStatus("Đội chưa có ca cứu hộ đang xử lý.", this::refresh);
+            }
             return false;
         });
         realtime.getMessages().observe(this, message -> {
-            if (message != null && !"PONG".equals(message.getEvent()) && !"SUBSCRIBED".equals(message.getEvent())) refresh();
+            if (message != null && !"PONG".equals(message.getEvent())
+                    && !"SUBSCRIBED".equals(message.getEvent())
+                    && !"AUTH_SUCCESS".equals(message.getEvent())) refresh();
         });
-        realtime.getConnectionState().observe(this, value -> { if (value == RealtimeViewModel.ConnectionState.CONNECTED) refresh(); });
+        realtime.getConnectionState().observe(this, value -> {
+            boolean reconnecting = realtimeState == RealtimeViewModel.ConnectionState.RECONNECTING;
+            realtimeState = value;
+            if (value == RealtimeViewModel.ConnectionState.CONNECTED && reconnecting) refresh();
+        });
         realtime.getErrors().observe(this, error -> { if (error != null) showApiError(error, this::refresh); });
     }
     private void refresh() {

@@ -19,6 +19,10 @@ public final class RescuerViewModel extends BaseApiViewModel {
                 null, ActiveSosResponse::getSos);
     }
 
+    public LiveData<ApiState<RescuerMapResponse>> loadMap() {
+        return request("GET", "api/rescuer/map", null, true, RescuerMapResponse.class, null, null);
+    }
+
     public LiveData<ApiState<AcceptSosResponse>> acceptSos(String sosId) {
         return request("POST", () -> actionPath(sosId, "accept"), null, true,
                 AcceptSosResponse.class, null, null);

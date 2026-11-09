@@ -17,7 +17,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-/** Transport bất đồng bộ dùng OkHttp/Gson đã có trong project. Không tự retry POST. */
+/** Transport bất đồng bộ dùng OkHttp/Gson đã có trong project. */
 public final class ApiClient {
     public interface Result<T> {
         void onSuccess(T value);
@@ -33,8 +33,12 @@ public final class ApiClient {
 
     public ApiClient(String baseUrl, SessionStore session, Executor callbackExecutor) {
         this(baseUrl, session, callbackExecutor, new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
-                .callTimeout(45, TimeUnit.SECONDS).retryOnConnectionFailure(false).build(), new Gson());
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .callTimeout(45, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .connectionPool(new okhttp3.ConnectionPool(5, 3, TimeUnit.SECONDS))
+                .build(), new Gson());
     }
 
     public ApiClient(String baseUrl, SessionStore session, Executor callbackExecutor,

@@ -2,11 +2,14 @@ package com.javafinal.util;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.location.Location;
 import com.javafinal.model.LocationCurrent;
 import com.javafinal.model.LocationHistory;
+import com.javafinal.model.PublicSosPoint;
 import com.javafinal.model.SosRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.annotations.PolylineOptions;
 import org.maplibre.android.geometry.LatLng;
@@ -31,6 +34,67 @@ public final class SosMapData {
         if (location == null || !valid(location.getLat(), location.getLng())) return "Chưa có vị trí";
         return String.format(java.util.Locale.US, "%.5f, %.5f", location.getLat(), location.getLng());
     }
+
+    /** Bản đồ công khai với tọa độ đã làm mờ dành cho USER. Trả true nếu đã căn camera. */
+    public static boolean drawPublic(Context context, MapLibreMap map, List<PublicSosPoint> points,
+            Location own, Predicate<PublicSosPoint> filter, boolean center) {
+        map.clear();
+        List<LatLng> bounds = new ArrayList<>();
+        if (own != null) {
+            LatLng position = new LatLng(own.getLatitude(), own.getLongitude());
+            bounds.add(position);
+            map.addMarker(new MarkerOptions().position(position).title("Vị trí của bạn")
+                    .icon(MapHelper.createPinIcon(context, Color.BLACK, "BẠN")));
+        }
+        for (PublicSosPoint point : points) {
+            if (point == null || !filter.test(point) || !valid(point.getAreaLat(), point.getAreaLng())) continue;
+            LatLng position = new LatLng(point.getAreaLat(), point.getAreaLng());
+            bounds.add(position);
+            MapHelper.addFloodZonePolygon(map, point.getAreaLat(), point.getAreaLng(), 0.005);
+            String createdAt = point.getCreatedAt();
+            map.addMarker(new MarkerOptions().position(position).title(point.getEmergencyTypeLabel())
+                    .snippet("Vị trí đã làm mờ • " + (createdAt == null || createdAt.trim().isEmpty() ? "—" : createdAt))
+                    .icon(MapHelper.createPinIcon(context, Color.parseColor("#E5383B"), "SOS")));
+        }
+        if (center && !bounds.isEmpty()) {
+            if (bounds.size() == 1) MapHelper.moveCamera(map, bounds.get(0).getLatitude(), bounds.get(0).getLongitude(), 13);
+            else MapHelper.fitRouteBounds(map, bounds, 100);
+            return true;
+        }
+        return false;
+    }
+    /** Bản đồ cứu hộ dùng tọa độ chính xác, gồm cả PUBLIC và PRIVATE. */
+    public static boolean drawRescuer(Context context, MapLibreMap map, List<SosRequest> points,
+            Location own, Predicate<SosRequest> filter, boolean center) {
+        map.clear();
+        List<LatLng> bounds = new ArrayList<>();
+        if (own != null) {
+            LatLng position = new LatLng(own.getLatitude(), own.getLongitude());
+            bounds.add(position);
+            map.addMarker(new MarkerOptions().position(position).title("Vị trí của bạn")
+                    .icon(MapHelper.createPinIcon(context, Color.BLACK, "BẠN")));
+        }
+        for (SosRequest point : points) {
+            if (point == null || !filter.test(point)) continue;
+            LocationCurrent victim = victim(point);
+            if (victim == null || !valid(victim.getLat(), victim.getLng())) continue;
+            LatLng position = new LatLng(victim.getLat(), victim.getLng());
+            bounds.add(position);
+            boolean privateSos = SosRequest.VISIBILITY_PRIVATE.equals(point.getVisibility());
+            String description = point.getDescription();
+            map.addMarker(new MarkerOptions().position(position).title(point.getEmergencyTypeLabel())
+                    .snippet(point.getVisibilityLabel() + " • " + point.getStatusLabel()
+                            + (description == null || description.trim().isEmpty() ? "" : "\n" + description))
+                    .icon(MapHelper.createPinIcon(context, Color.parseColor(privateSos ? "#C27C0E" : "#E5383B"), "SOS")));
+        }
+        if (center && !bounds.isEmpty()) {
+            if (bounds.size() == 1) MapHelper.moveCamera(map, bounds.get(0).getLatitude(), bounds.get(0).getLongitude(), 15);
+            else MapHelper.fitRouteBounds(map, bounds, 100);
+            return true;
+        }
+        return false;
+    }
+
     public static void draw(Context context, MapLibreMap map, SosRequest sos, List<LocationHistory> trail, boolean center) {
         if (map == null) return;
         map.clear();

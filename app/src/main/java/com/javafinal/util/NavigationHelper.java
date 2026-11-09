@@ -33,7 +33,6 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import com.javafinal.model.User;
 import com.javafinal.model.RescueTeam;
 import com.javafinal.model.RescueTeamMember;
-import com.javafinal.model.SosNotification;
 import com.javafinal.network.ApiError;
 import com.javafinal.ui.ApiActivity;
 import com.javafinal.ui.user.TrackSosActivity;
@@ -43,7 +42,6 @@ import com.javafinal.viewmodel.ApiViewModelFactory;
 import com.javafinal.viewmodel.AuthViewModel;
 import com.javafinal.viewmodel.UserViewModel;
 import com.javafinal.viewmodel.RescuerViewModel;
-import com.javafinal.viewmodel.NotificationViewModel;
 import com.javafinal.ui.auth.LoginActivity;
 
 import java.util.List;
@@ -332,49 +330,13 @@ public class NavigationHelper {
         dialog.setContentView(root); dialog.show();
     }
 
-    public static void showNotificationsDialog(Activity activity) {
+    public static void openNotifications(Activity activity) {
         if (activity == null || activity.isFinishing()) return;
-        NotificationViewModel notifications = viewModel(activity, NotificationViewModel.class);
-        BottomSheetDialog dialog = new BottomSheetDialog(activity);
-        LinearLayout root = createSheetRoot(activity, null, "Thông báo", null);
-        LinearLayout body = scrollingBody(activity, root);
-        MaterialButton close = createSheetButton(activity, "Đóng", true, false);
-        close.setOnClickListener(v -> dialog.dismiss()); root.addView(close);
-        dialog.setContentView(root); dialog.show();
-        Runnable[] load = new Runnable[1];
-        load[0] = () -> {
-            body.removeAllViews(); addSheetText(activity, body, "Đang tải thông báo…");
-            observeSheet(activity, dialog, notifications.loadMyNotifications(), response -> {
-                body.removeAllViews();
-                if (response.getData() == null || response.getData().isEmpty()) { addSheetText(activity, body, "Bạn chưa có thông báo."); return; }
-                for (SosNotification notification : response.getData()) {
-                    if (notification == null) continue;
-                    TextView message = addSheetText(activity, body, (notification.isRead() ? "" : "● ") + safe(notification.getMessage())
-                            + "\n" + ApiDisplay.time(notification.getCreatedAt()));
-                    MaterialButton read = createSheetButton(activity, notification.isRead() ? "Đã đọc" : "Đánh dấu đã đọc", false, false);
-                    read.setEnabled(!notification.isRead());
-                    read.setOnClickListener(v -> {
-                        read.setEnabled(false);
-                        observeSheet(activity, dialog, notifications.markAsRead(notification.getNotifyId()), result -> {
-                            notification.setRead(true); read.setText("Đã đọc");
-                            message.setText(safe(notification.getMessage()) + "\n" + ApiDisplay.time(notification.getCreatedAt()));
-                        }, error -> { read.setEnabled(true); showSnack(activity, error.getMessage()); handleSheetAuth(activity, error); });
-                    });
-                    body.addView(read);
-                    if (notification.getSosId() != null && !notification.getSosId().trim().isEmpty()) {
-                        MaterialButton open = createSheetButton(activity, "Xem yêu cầu SOS", false, false);
-                        open.setOnClickListener(v -> {
-                            User user = ApiViewModelFactory.getDefault(activity).getSession().getUser();
-                            Class<?> target = user != null && user.isRescuer() ? SosDetailActivity.class : TrackSosActivity.class;
-                            activity.startActivity(new Intent(activity, target).putExtra(ApiActivity.SOS_ID, notification.getSosId()));
-                            dialog.dismiss();
-                        });
-                        body.addView(open);
-                    }
-                }
-            }, error -> sheetError(activity, body, error, load[0]));
-        };
-        load[0].run();
+        activity.startActivity(new Intent(activity, com.javafinal.ui.notification.NotificationActivity.class));
+    }
+
+    public static void showNotificationsDialog(Activity activity) {
+        openNotifications(activity);
     }
 
     private static <T extends androidx.lifecycle.ViewModel> T viewModel(Activity activity, Class<T> type) {

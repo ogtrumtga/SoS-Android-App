@@ -452,9 +452,15 @@ public final class SosApiModels {
     // NHÓM 6: ĐỘI CỨU HỘ (/api/rescuer) - API #16 -> #22
     // =========================================================================
 
-    /**
-     * Kết quả trả về từ API #16 ({@code GET /api/rescuer/queue}).
-     */
+    /** Bản đồ PUBLIC và PRIVATE có vị trí chính xác, chỉ dành cho RESCUER. */
+    public static class RescuerMapResponse implements Serializable {
+        @SerializedName("data")
+        private List<SosRequest> data = new ArrayList<>();
+
+        public List<SosRequest> getData() { return data; }
+    }
+
+    /** Kết quả trả về từ API #16 ({@code GET /api/rescuer/queue}). */
     public static class RescuerQueueResponse implements Serializable {
         @SerializedName("success")
         private boolean success;

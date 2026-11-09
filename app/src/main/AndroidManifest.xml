@@ -74,6 +74,15 @@
             android:name=".ui.rescuer.RescuerHomeActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.rescuer.RescueTeamActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.rescuer.RescuerMapActivity"
+            android:exported="false" />
+
         <!-- 8. Chi tiết tin báo SOS (RESCUER) -->
         <activity
             android:name=".ui.rescuer.SosDetailActivity"
@@ -89,6 +98,11 @@
             android:name=".ui.rescuer.ConfirmCompleteActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- 11. Màn hình danh sách thông báo (Dùng chung) -->
+        <activity
+            android:name=".ui.notification.NotificationActivity"
+            android:exported="false" />
 
     </application>
 

@@ -12,6 +12,15 @@ public class RescueTeamMember implements Serializable {
 
     public static final String ROLE_LEADER = "LEADER";
     public static final String ROLE_MEMBER = "MEMBER";
+    public static final String ROLE_DRIVER = "DRIVER";
+    public static final String ROLE_MEDIC = "MEDIC";
+
+    public static String roleLabel(String role) {
+        if (ROLE_LEADER.equals(role)) return "Trưởng đội";
+        if (ROLE_DRIVER.equals(role)) return "Lái xe";
+        if (ROLE_MEDIC.equals(role)) return "Y tế";
+        return ROLE_MEMBER.equals(role) ? "Đội viên" : "Chưa xác định";
+    }
 
     /** PK uuid */
     @SerializedName(value = "member_id", alternate = {"id"})

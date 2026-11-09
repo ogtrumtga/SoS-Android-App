@@ -22,11 +22,8 @@ import com.javafinal.util.SosMapData;
 import com.javafinal.viewmodel.EmergencyTypeViewModel;
 import com.javafinal.viewmodel.RealtimeViewModel;
 import com.javafinal.viewmodel.SosViewModel;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.maplibre.android.annotations.MarkerOptions;
-import org.maplibre.android.geometry.LatLng;
 
 public class HomeActivity extends MapApiActivity {
     private SosViewModel sos;
@@ -89,7 +86,7 @@ public class HomeActivity extends MapApiActivity {
             Location location = gps.getLatest();
             if (mapReady && location != null) MapHelper.moveCamera(map, location.getLatitude(), location.getLongitude(), 15);
         });
-        findViewById(R.id.btnNotifications).setOnClickListener(v -> NavigationHelper.showNotificationsDialog(this));
+        findViewById(R.id.btnNotifications).setOnClickListener(v -> NavigationHelper.openNotifications(this));
         findViewById(R.id.btnProfile).setOnClickListener(v -> NavigationHelper.showProfileDialog(this, this::renderBanner));
         BottomNavigationView bottom = findViewById(R.id.bottomNav);
         bottom.setSelectedItemId(R.id.nav_home);
@@ -98,12 +95,14 @@ public class HomeActivity extends MapApiActivity {
             if (item.getItemId() == R.id.nav_requests) {
                 if (active != null) openActive();
                 else showStatus("Bạn chưa có SOS đang hoạt động.", this::refresh);
-            } else if (item.getItemId() == R.id.nav_alerts) NavigationHelper.showNotificationsDialog(this);
+            } else if (item.getItemId() == R.id.nav_alerts) NavigationHelper.openNotifications(this);
             else if (item.getItemId() == R.id.nav_settings) NavigationHelper.showProfileDialog(this, this::renderBanner);
             return false;
         });
         realtime.getMessages().observe(this, message -> {
-            if (message != null && !"PONG".equals(message.getEvent()) && !"SUBSCRIBED".equals(message.getEvent())) refresh();
+            if (message != null && !"PONG".equals(message.getEvent())
+                    && !"SUBSCRIBED".equals(message.getEvent())
+                    && !"AUTH_SUCCESS".equals(message.getEvent())) refresh();
         });
         realtime.getErrors().observe(this, error -> { if (error != null && error.isUnauthorized()) showApiError(error, null); });
     }
@@ -159,29 +158,7 @@ public class HomeActivity extends MapApiActivity {
     private void openActive() { if (active != null) openSos(TrackSosActivity.class, active.getId()); }
     private void renderMap() {
         if (!mapReady) return;
-        map.clear();
-        List<LatLng> bounds = new ArrayList<>();
-        Location own = gps.getLatest();
-        if (own != null) {
-            LatLng position = new LatLng(own.getLatitude(), own.getLongitude());
-            bounds.add(position);
-            map.addMarker(new MarkerOptions().position(position).title("Vị trí của bạn")
-                    .icon(MapHelper.createPinIcon(this, android.graphics.Color.BLACK, "BẠN")));
-        }
-        for (PublicSosPoint point : points) {
-            if (point == null || !matchesFilter(point)
-                    || !SosMapData.valid(point.getAreaLat(), point.getAreaLng())) continue;
-            bounds.add(new LatLng(point.getAreaLat(), point.getAreaLng()));
-            MapHelper.addFloodZonePolygon(map, point.getAreaLat(), point.getAreaLng(), 0.005);
-            map.addMarker(new MarkerOptions().position(new LatLng(point.getAreaLat(), point.getAreaLng()))
-                    .title(point.getEmergencyTypeLabel()).snippet("Vị trí đã làm mờ • " + text(point.getCreatedAt()))
-                    .icon(MapHelper.createPinIcon(this, android.graphics.Color.parseColor("#E5383B"), "SOS")));
-        }
-        if (!centered && !bounds.isEmpty()) {
-            if (bounds.size() == 1) MapHelper.moveCamera(map, bounds.get(0).getLatitude(), bounds.get(0).getLongitude(), 13);
-            else MapHelper.fitRouteBounds(map, bounds, 100);
-            centered = true;
-        }
+        if (SosMapData.drawPublic(this, map, points, gps.getLatest(), this::matchesFilter, !centered)) centered = true;
     }
     @Override protected void onStart() {
         super.onStart();

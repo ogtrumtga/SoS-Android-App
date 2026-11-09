@@ -40,6 +40,15 @@ public class RescueTeam implements Serializable {
     @SerializedName("members")
     private List<RescueTeamMember> members = new ArrayList<>();
 
+    @SerializedName("current_user_role")
+    private String currentUserRole;
+
+    @SerializedName("can_manage")
+    private boolean canManage;
+
+    public String getCurrentUserRole() { return currentUserRole; }
+    public boolean canManage() { return canManage && RescueTeamMember.ROLE_LEADER.equals(currentUserRole); }
+
     public RescueTeam() {
     }
 

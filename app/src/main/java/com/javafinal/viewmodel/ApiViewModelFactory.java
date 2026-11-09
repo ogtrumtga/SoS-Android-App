@@ -41,6 +41,7 @@ public final class ApiViewModelFactory implements ViewModelProvider.Factory {
         else if (modelClass == SosViewModel.class) result = new SosViewModel(api);
         else if (modelClass == NotificationViewModel.class) result = new NotificationViewModel(api);
         else if (modelClass == RescuerViewModel.class) result = new RescuerViewModel(api);
+        else if (modelClass == TeamViewModel.class) result = new TeamViewModel(api);
         else if (modelClass == LocationViewModel.class) result = new LocationViewModel(api);
         else if (modelClass == EmergencyTypeViewModel.class) result = new EmergencyTypeViewModel(api);
         else if (modelClass == RealtimeViewModel.class) result = new RealtimeViewModel(api);

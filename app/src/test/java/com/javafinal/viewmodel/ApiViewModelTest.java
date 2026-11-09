@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.javafinal.model.SosApiModels;
+import com.javafinal.model.RescueTeam;
+import com.javafinal.model.TeamApiModels;
 import com.javafinal.model.SosRequest;
 import com.javafinal.model.User;
 import com.javafinal.network.ApiClient;
@@ -51,6 +53,7 @@ public class ApiViewModelTest {
     private SosViewModel sos;
     private NotificationViewModel notifications;
     private RescuerViewModel rescuers;
+    private TeamViewModel teams;
     private LocationViewModel locations;
     private EmergencyTypeViewModel types;
     private SystemViewModel system;
@@ -78,6 +81,7 @@ public class ApiViewModelTest {
         sos = keep(new SosViewModel(api));
         notifications = keep(new NotificationViewModel(api));
         rescuers = keep(new RescuerViewModel(api));
+        teams = keep(new TeamViewModel(api));
         locations = keep(new LocationViewModel(api));
         types = keep(new EmergencyTypeViewModel(api));
         system = keep(new SystemViewModel(api));
@@ -303,7 +307,7 @@ public class ApiViewModelTest {
     @Test public void factoryCreatesEveryViewModelAndRealtimeNeedsAuthentication() {
         ApiViewModelFactory factory = new ApiViewModelFactory(api);
         Class<?>[] classes = {AuthViewModel.class, UserViewModel.class, SosViewModel.class,
-                NotificationViewModel.class, RescuerViewModel.class, LocationViewModel.class,
+                NotificationViewModel.class, RescuerViewModel.class, TeamViewModel.class, LocationViewModel.class,
                 EmergencyTypeViewModel.class, SystemViewModel.class};
         for (Class<?> type : classes) assertNotNull(factory.create(type.asSubclass(BaseApiViewModel.class)));
         session.clear();
@@ -314,6 +318,76 @@ public class ApiViewModelTest {
         ViewModelStore store = new ViewModelStore();
         store.put("realtime", realtime);
         store.clear();
+    }
+
+    @Test public void rescuerMapAuthenticatesAndPreservesPublicAndPrivateExactLocations() throws Exception {
+        responseBody = "{\"success\":true,\"count\":2,\"data\":["
+                + "{\"sos_id\":\"s1\",\"emergency_type\":\"NGAP_LUT\",\"visibility\":\"PUBLIC\",\"status\":\"WAITING\","
+                + "\"initial_lat\":10.781234,\"initial_lng\":106.691234},"
+                + "{\"sos_id\":\"s2\",\"emergency_type\":\"TAI_NAN\",\"visibility\":\"PRIVATE\",\"status\":\"ACCEPTED\","
+                + "\"description\":\"Cần cứu hộ\",\"initial_lat\":10.723456,\"initial_lng\":106.654321}]}";
+        ApiState<SosApiModels.RescuerMapResponse> result = await(rescuers.loadMap());
+        assertEquals(ApiState.Status.SUCCESS, result.getStatus());
+        Request sent = requests.poll();
+        assertEquals("/api/rescuer/map", sent.url().encodedPath());
+        assertEquals("Bearer initial-token", sent.header("Authorization"));
+        List<SosRequest> data = result.getData().getData();
+        assertEquals(2, data.size());
+        assertEquals("PUBLIC", data.get(0).getVisibility());
+        assertEquals(10.781234, com.javafinal.util.SosMapData.victim(data.get(0)).getLat(), 0.0000001);
+        assertEquals("PRIVATE", data.get(1).getVisibility());
+        assertEquals("ACCEPTED", data.get(1).getStatus());
+        assertEquals("Cần cứu hộ", data.get(1).getDescription());
+        assertEquals(106.654321, com.javafinal.util.SosMapData.victim(data.get(1)).getLng(), 0.0000001);
+        session.clear();
+        ApiState<SosApiModels.RescuerMapResponse> unauthenticated = rescuers.loadMap().getValue();
+        assertEquals(ApiState.Status.ERROR, unauthenticated.getStatus());
+        assertEquals(401, unauthenticated.getError().getStatusCode());
+        assertTrue(requests.isEmpty());
+    }
+
+    @Test public void teamManagementUsesPhoneForAddAndMembershipIdsForChanges() throws Exception {
+        responseBody = "{\"success\":true,\"data\":[]}";
+        endpoint("GET", "/api/rescuer/teams/mine", true, null, teams::loadMyTeams);
+        responseBody = "{\"success\":true,\"message\":\"Saved\",\"data\":{\"member_id\":\"m1\",\"role\":\"MEDIC\"}}";
+        endpoint("POST", "/api/rescuer/teams/t1/members", true, "{\"phone\":\"+84901234567\",\"role\":\"MEDIC\"}",
+                () -> teams.addMember("t1", " +84901234567 ", "MEDIC"));
+        endpoint("PUT", "/api/rescuer/teams/t1/members/m1", true, "{\"role\":\"DRIVER\"}",
+                () -> teams.updateMember("t1", "m1", "DRIVER"));
+        responseBody = "{\"success\":true,\"message\":\"Deleted\",\"member_id\":\"m1\"}";
+        endpoint("DELETE", "/api/rescuer/teams/t1/members/m1", true, null, () -> teams.deleteMember("t1", "m1"));
+    }
+
+    @Test public void teamPermissionsComeFromSelectedTeamAndRequireLeaderRole() throws Exception {
+        responseBody = "{\"success\":true,\"data\":["
+                + "{\"team_id\":\"t1\",\"current_user_role\":\"LEADER\",\"can_manage\":true,\"members\":["
+                + "{\"member_id\":\"m1\",\"user_id\":\"u1\",\"name\":\"An\",\"phone\":\"0901234567\",\"role\":\"LEADER\"}]},"
+                + "{\"team_id\":\"t2\",\"current_user_role\":\"MEMBER\",\"can_manage\":false},"
+                + "{\"team_id\":\"t3\",\"current_user_role\":\"MEMBER\",\"can_manage\":true},"
+                + "{\"team_id\":\"t4\",\"current_user_role\":\"LEADER\"}]}";
+        ApiState<SosApiModels.RescueTeamsResponse> result = await(teams.loadMyTeams());
+        assertEquals(ApiState.Status.SUCCESS, result.getStatus());
+        List<RescueTeam> data = result.getData().getData();
+        assertTrue(data.get(0).canManage());
+        assertEquals("m1", data.get(0).getMembers().get(0).getMemberId());
+        assertEquals("An", data.get(0).getMembers().get(0).getName());
+        assertFalse(data.get(1).canManage());
+        assertFalse(data.get(2).canManage());
+        assertFalse(data.get(3).canManage());
+    }
+
+    @Test public void teamValidationAndForbiddenWritesDoNotGrantManagement() throws Exception {
+        invalid(teams.addMember("t1", "invalid", "MEMBER"));
+        invalid(teams.addMember("t1", "0901234567", "ADMIN"));
+        invalid(teams.updateMember("t1", "m1", "ADMIN"));
+        invalid(teams.deleteMember("t1", ""));
+        assertTrue(requests.isEmpty());
+        responseCode = 403;
+        responseBody = "{\"detail\":\"Chỉ trưởng đội được quản lý đội viên.\"}";
+        ApiState<TeamApiModels.MemberResponse> result = await(teams.updateMember("t1", "m1", "LEADER"));
+        assertEquals(ApiState.Status.ERROR, result.getStatus());
+        assertEquals(403, result.getError().getStatusCode());
+        assertEquals("initial-token", session.getAccessToken());
     }
 
     private void invalid(LiveData<? extends ApiState<?>> state) {
