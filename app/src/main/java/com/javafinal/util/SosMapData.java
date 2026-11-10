@@ -96,16 +96,52 @@ public final class SosMapData {
     }
 
     public static void draw(Context context, MapLibreMap map, SosRequest sos, List<LocationHistory> trail, boolean center) {
+        draw(context, map, sos, trail, null, center);
+    }
+
+    public static void draw(Context context, MapLibreMap map, SosRequest sos, List<LocationHistory> trail,
+            Location fallbackOwnLocation, boolean center) {
         if (map == null) return;
         map.clear();
         List<LatLng> bounds = new ArrayList<>();
-        addMarker(context, map, victim(sos), "SOS", "Vị trí người cần cứu hộ", "#E5383B", bounds);
-        addMarker(context, map, rescuer(sos), "CỨU HỘ", "Vị trí đội cứu hộ", "#111111", bounds);
-        List<LatLng> points = new ArrayList<>();
-        if (trail != null) for (LocationHistory item : trail) {
-            if (item != null && valid(item.getLat(), item.getLng())) points.add(new LatLng(item.getLat(), item.getLng()));
+        LocationCurrent victimLoc = victim(sos);
+        LocationCurrent rescuerLoc = rescuer(sos);
+        if (rescuerLoc == null && fallbackOwnLocation != null
+                && valid(fallbackOwnLocation.getLatitude(), fallbackOwnLocation.getLongitude())) {
+            rescuerLoc = new LocationCurrent(null, sos == null ? null : sos.getId(), "RESCUER",
+                    fallbackOwnLocation.getLatitude(), fallbackOwnLocation.getLongitude(),
+                    fallbackOwnLocation.hasAccuracy() ? fallbackOwnLocation.getAccuracy() : 0, null);
         }
-        if (points.size() > 1) map.addPolyline(new PolylineOptions().addAll(points).width(4).color(Color.parseColor("#3B82F6")));
+        addMarker(context, map, victimLoc, "SOS", "Vị trí người cần cứu hộ", "#E5383B", bounds);
+        addMarker(context, map, rescuerLoc, "CỨU HỘ", "Vị trí đội cứu hộ", "#111111", bounds);
+
+        List<LatLng> routeLatLngs = new ArrayList<>();
+        if (sos != null) {
+            for (double[] pt : sos.getRoutePoints()) {
+                if (pt != null && pt.length >= 2 && valid(pt[0], pt[1])) {
+                    routeLatLngs.add(new LatLng(pt[0], pt[1]));
+                }
+            }
+        }
+        if (routeLatLngs.size() > 1) {
+            bounds.addAll(routeLatLngs);
+            map.addPolyline(new PolylineOptions().addAll(routeLatLngs).width(5.0f).color(Color.parseColor("#2563EB")));
+        } else {
+            List<LatLng> points = new ArrayList<>();
+            if (trail != null) for (LocationHistory item : trail) {
+                if (item != null && valid(item.getLat(), item.getLng())) points.add(new LatLng(item.getLat(), item.getLng()));
+            }
+            if (points.size() > 1) {
+                map.addPolyline(new PolylineOptions().addAll(points).width(4.0f).color(Color.parseColor("#3B82F6")));
+            } else if (victimLoc != null && rescuerLoc != null
+                    && valid(victimLoc.getLat(), victimLoc.getLng())
+                    && valid(rescuerLoc.getLat(), rescuerLoc.getLng())) {
+                List<LatLng> direct = new ArrayList<>();
+                direct.add(new LatLng(rescuerLoc.getLat(), rescuerLoc.getLng()));
+                direct.add(new LatLng(victimLoc.getLat(), victimLoc.getLng()));
+                map.addPolyline(new PolylineOptions().addAll(direct).width(3.5f).color(Color.parseColor("#60A5FA")));
+            }
+        }
         if (center && !bounds.isEmpty()) {
             if (bounds.size() == 1) MapHelper.moveCamera(map, bounds.get(0).getLatitude(), bounds.get(0).getLongitude(), 15);
             else MapHelper.fitRouteBounds(map, bounds, 100);

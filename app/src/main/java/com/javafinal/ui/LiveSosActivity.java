@@ -12,6 +12,7 @@ import com.javafinal.model.SosRequest;
 import com.javafinal.model.WebSocketMessage;
 import com.javafinal.util.DeviceLocation;
 import com.javafinal.util.NavigationHelper;
+import com.javafinal.util.OsrmRouter;
 import com.javafinal.util.SosMapData;
 import com.javafinal.viewmodel.LocationViewModel;
 import com.javafinal.viewmodel.RealtimeViewModel;
@@ -46,10 +47,16 @@ public abstract class LiveSosActivity extends MapApiActivity {
         bind("detail", (SosApiModels.SosSingleResponse response) -> {
             if (ended) return;
             if (response.getSos() == null) { showStatus("Không tìm thấy dữ liệu SOS.", this::refreshSos); return; }
+            SosRequest previous = currentSos;
             currentSos = response.getSos();
+            if (previous != null && previous.isOsrmLoaded()
+                    && previous.getOsrmDistanceKm() != null && previous.getOsrmDurationMinutes() != null) {
+                currentSos.setOsrmRoute(previous.getRoutePoints(), previous.getOsrmDistanceKm(), previous.getOsrmDurationMinutes());
+            }
             fresh = true;
             clearStatus();
             if (SosRules.isTerminal(currentSos.getStatus())) { endTracking(); return; }
+            updateOsrmRoute();
             onSosChanged();
             renderLiveMap(false);
             realtime.subscribeSos(sosId);
@@ -60,7 +67,12 @@ public abstract class LiveSosActivity extends MapApiActivity {
             if (loading && currentSos == null) showLoading("Đang tải ca cứu hộ…");
         });
         bind("locations", (SosApiModels.LocationCurrentResponse response) -> {
-            if (currentSos != null && !ended) { currentSos.setLocations(response.getLocations()); onSosChanged(); renderLiveMap(false); }
+            if (currentSos != null && !ended) {
+                currentSos.setLocations(response.getLocations());
+                updateOsrmRoute();
+                onSosChanged();
+                renderLiveMap(false);
+            }
         }, error -> showApiError(error, this::refreshSos), null);
         bind("trail", (SosApiModels.LocationTrailResponse response) -> {
             trail = response.getTrail() == null ? Collections.emptyList() : response.getTrail();
@@ -85,6 +97,7 @@ public abstract class LiveSosActivity extends MapApiActivity {
                 if ("VICTIM".equals(message.getActor())) locations.setVictim(location);
                 else if ("RESCUER".equals(message.getActor())) locations.setRescuer(location);
                 currentSos.setLocations(locations);
+                updateOsrmRoute();
                 onSosChanged(); renderLiveMap(false);
             } else if (!WebSocketMessage.EVENT_SUBSCRIBED.equals(message.getEvent())) refreshSos();
         });
@@ -98,18 +111,57 @@ public abstract class LiveSosActivity extends MapApiActivity {
     }
 
     protected boolean canPublishGps() { return fresh && currentSos != null && !SosRules.isTerminal(currentSos.getStatus()); }
+    protected Location fallbackRescuerLocation() { return null; }
     protected abstract void onSosChanged();
     protected abstract void onSosEnded();
     protected void refreshSos() { if (initialized && !ended) execute("detail", () -> sosVm.loadDetail(sosId)); }
+    protected void updateOsrmRoute() {
+        if (ended || currentSos == null) return;
+        LocationCurrent victim = SosMapData.victim(currentSos);
+        if (victim == null || !SosMapData.valid(victim.getLat(), victim.getLng())) return;
+        LocationCurrent rescuer = SosMapData.rescuer(currentSos);
+        double rLat = Double.NaN, rLng = Double.NaN;
+        if (rescuer != null && SosMapData.valid(rescuer.getLat(), rescuer.getLng())) {
+            rLat = rescuer.getLat();
+            rLng = rescuer.getLng();
+        } else {
+            Location own = fallbackRescuerLocation();
+            if (own != null && SosMapData.valid(own.getLatitude(), own.getLongitude())) {
+                rLat = own.getLatitude();
+                rLng = own.getLongitude();
+            }
+        }
+        if (!SosMapData.valid(rLat, rLng)) return;
+        OsrmRouter.RouteResult cached = OsrmRouter.getCached(rLat, rLng, victim.getLat(), victim.getLng());
+        if (cached != null) {
+            currentSos.setOsrmRoute(cached.getPoints(), cached.getDistanceKm(), cached.getDurationMinutes());
+            return;
+        }
+        final String targetSosId = currentSos.getId();
+        OsrmRouter.fetchRoute(rLat, rLng, victim.getLat(), victim.getLng(), result -> {
+            if (ended || currentSos == null) return;
+            if (targetSosId != null && !targetSosId.equals(currentSos.getId())) return;
+            currentSos.setOsrmRoute(result.getPoints(), result.getDistanceKm(), result.getDurationMinutes());
+            onSosChanged();
+            renderLiveMap(false);
+        });
+    }
     protected void renderLiveMap(boolean center) {
         if (!mapReady || currentSos == null || ended) return;
-        boolean hasLocation = SosMapData.victim(currentSos) != null || SosMapData.rescuer(currentSos) != null;
-        SosMapData.draw(this, map, currentSos, trail, center || !centered);
+        Location fallback = fallbackRescuerLocation();
+        boolean hasLocation = SosMapData.victim(currentSos) != null || SosMapData.rescuer(currentSos) != null || fallback != null;
+        SosMapData.draw(this, map, currentSos, trail, fallback, center || !centered);
         if (hasLocation) centered = true;
     }
     protected void stopGps() { if (gps != null) gps.stop(); }
     private void publishGps(Location location) {
-        if (!initialized || ended || !canPublishGps() || SystemClock.elapsedRealtime() - lastSent < 6000) return;
+        if (!initialized || ended || !canPublishGps()) return;
+        if (currentSos != null && SosMapData.rescuer(currentSos) == null) {
+            updateOsrmRoute();
+            onSosChanged();
+            renderLiveMap(false);
+        }
+        if (SystemClock.elapsedRealtime() - lastSent < 6000) return;
         lastSent = SystemClock.elapsedRealtime();
         execute("gps", () -> locationVm.updateLocation(sosId, location.getLatitude(), location.getLongitude(),
                 location.hasAccuracy() ? location.getAccuracy() : 0, true));

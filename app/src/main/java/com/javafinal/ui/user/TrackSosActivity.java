@@ -71,9 +71,16 @@ public class TrackSosActivity extends LiveSosActivity {
         visibility.setText(currentSos.getVisibilityLabel());
         visibility.setEnabled(!changing); cancel.setEnabled(!changing);
         LocationCurrent rescuer = SosMapData.rescuer(currentSos), victim = SosMapData.victim(currentSos);
-        if ("RESCUING".equals(status) && rescuer != null && victim != null) {
-            double distance = SosRequest.computeHaversineKm(rescuer.getLat(), rescuer.getLng(), victim.getLat(), victim.getLng());
-            ((TextView) findViewById(R.id.tvTeamStatus)).setText(String.format(Locale.US, "Cách %.1f km (đường thẳng) • %s", distance, text(currentSos.getRescuerPhone())));
+        if (("ACCEPTED".equals(status) || "RESCUING".equals(status)) && rescuer != null && victim != null) {
+            if (currentSos.isOsrmLoaded() && currentSos.getOsrmDistanceKm() != null) {
+                long etaMin = currentSos.getOsrmDurationMinutes() == null ? 1L : Math.max(1L, Math.round(currentSos.getOsrmDurationMinutes()));
+                ((TextView) findViewById(R.id.tvTeamStatus)).setText(
+                        String.format(Locale.US, "Cách %.1f km (đường bộ • ~%d phút) • %s",
+                                currentSos.getOsrmDistanceKm(), etaMin, text(currentSos.getRescuerPhone())));
+            } else if ("RESCUING".equals(status)) {
+                double distance = SosRequest.computeHaversineKm(rescuer.getLat(), rescuer.getLng(), victim.getLat(), victim.getLng());
+                ((TextView) findViewById(R.id.tvTeamStatus)).setText(String.format(Locale.US, "Cách %.1f km (đường thẳng) • %s", distance, text(currentSos.getRescuerPhone())));
+            }
         }
     }
     @Override protected void onSosEnded() { openSos(SosResultActivity.class, sosId); finish(); }

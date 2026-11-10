@@ -32,7 +32,15 @@ public class RealtimeTrackingActivity extends LiveSosActivity {
         bind("assignment", (SosApiModels.ActiveSosResponse response) -> {
             ownAssignment = response.isActive() && response.getSos() != null && response.getSos().getId().equals(sosId);
             if (!ownAssignment) { stopGps(); home(); return; }
-            currentSos = response.getSos(); onSosChanged();
+            SosRequest previous = currentSos;
+            currentSos = response.getSos();
+            if (previous != null && previous.isOsrmLoaded()
+                    && previous.getOsrmDistanceKm() != null && previous.getOsrmDurationMinutes() != null) {
+                currentSos.setOsrmRoute(previous.getRoutePoints(), previous.getOsrmDistanceKm(), previous.getOsrmDurationMinutes());
+            }
+            updateOsrmRoute();
+            onSosChanged();
+            renderLiveMap(false);
             if (gps != null) gps.request();
         }, error -> showApiError(error, () -> execute("assignment", rescuer::loadMyActive)), null);
         bind("status", (SosApiModels.MissionActionResponse response) -> {
@@ -67,6 +75,9 @@ public class RealtimeTrackingActivity extends LiveSosActivity {
         return super.canPublishGps() && ownAssignment && currentSos != null
                 && !"WAITING".equals(currentSos.getStatus());
     }
+    @Override protected android.location.Location fallbackRescuerLocation() {
+        return gps == null ? null : gps.getLatest();
+    }
     @Override protected void onSosChanged() {
         if (currentSos == null) return;
         String status = currentSos.getStatus();
@@ -76,8 +87,18 @@ public class RealtimeTrackingActivity extends LiveSosActivity {
         ((TextView) findViewById(R.id.tvVictimDetail)).setText(text(currentSos.getRequesterName()) + " • " + text(currentSos.getRequesterPhone()));
         ((TextView) findViewById(R.id.tvTypeBadge)).setText(currentSos.getEmergencyTypeLabel());
         LocationCurrent victim = SosMapData.victim(currentSos), team = SosMapData.rescuer(currentSos);
-        ((TextView) findViewById(R.id.tvDistanceRemain)).setText(victim == null || team == null ? "Chưa có GPS"
-                : String.format(Locale.US, "%.1f km", SosRequest.computeHaversineKm(team.getLat(), team.getLng(), victim.getLat(), victim.getLng())));
+        Double osrmKm = currentSos.isOsrmLoaded() ? currentSos.getOsrmDistanceKm() : null;
+        if (osrmKm != null) {
+            ((TextView) findViewById(R.id.tvDistanceRemain)).setText(String.format(Locale.US, "%.1f km", osrmKm));
+        } else if (victim != null && team != null) {
+            ((TextView) findViewById(R.id.tvDistanceRemain)).setText(
+                    String.format(Locale.US, "%.1f km", SosRequest.computeHaversineKm(team.getLat(), team.getLng(), victim.getLat(), victim.getLng())));
+        } else if (victim != null && gps != null && gps.getLatest() != null) {
+            ((TextView) findViewById(R.id.tvDistanceRemain)).setText(
+                    String.format(Locale.US, "%.1f km", SosRequest.computeHaversineKm(gps.getLatest().getLatitude(), gps.getLatest().getLongitude(), victim.getLat(), victim.getLng())));
+        } else {
+            ((TextView) findViewById(R.id.tvDistanceRemain)).setText("Chưa có GPS");
+        }
         ((TextView) findViewById(R.id.tvSpeed)).setText(team == null ? "—" : String.format(Locale.US, "±%.1fm", team.getAccuracyM()));
         ((TextView) findViewById(R.id.tvEta)).setText(currentSos.getStatusLabel());
         next.setText("ACCEPTED".equals(status) ? "Bắt đầu di chuyển" : "RESCUING".equals(status) ? "Đã tới hiện trường" : "Hoàn thành ca cứu hộ");

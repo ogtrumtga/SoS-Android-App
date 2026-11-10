@@ -118,6 +118,8 @@ public class SosRequest implements Serializable {
     private final List<double[]> routePoints = new ArrayList<>();
     private int routeStepIndex = 0;
     private boolean osrmLoaded = false;
+    private Double osrmDistanceKm;
+    private Double osrmDurationMinutes;
 
     public SosRequest() {
     }
@@ -284,8 +286,27 @@ public class SosRequest implements Serializable {
         }
     }
 
+    public synchronized void setOsrmRoute(List<double[]> points, double distanceKm, double durationMinutes) {
+        this.routePoints.clear();
+        if (points != null) {
+            this.routePoints.addAll(points);
+        }
+        this.osrmLoaded = this.routePoints.size() >= 2;
+        this.osrmDistanceKm = distanceKm;
+        this.osrmDurationMinutes = durationMinutes;
+        this.routeStepIndex = 0;
+    }
+
     public synchronized boolean isOsrmLoaded() {
         return osrmLoaded;
+    }
+
+    public synchronized Double getOsrmDistanceKm() {
+        return osrmDistanceKm;
+    }
+
+    public synchronized Double getOsrmDurationMinutes() {
+        return osrmDurationMinutes;
     }
 
     public synchronized double getRemainingRouteDistanceKm() {

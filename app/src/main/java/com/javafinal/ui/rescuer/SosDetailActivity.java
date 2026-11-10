@@ -12,6 +12,7 @@ import com.javafinal.ui.MapApiActivity;
 import com.javafinal.util.DeviceLocation;
 import com.javafinal.util.ApiDisplay;
 import com.javafinal.util.NavigationHelper;
+import com.javafinal.util.OsrmRouter;
 import com.javafinal.util.SosMapData;
 import com.javafinal.viewmodel.RescuerViewModel;
 import com.javafinal.viewmodel.SosRules;
@@ -38,7 +39,13 @@ public class SosDetailActivity extends MapApiActivity {
         accept.setEnabled(false); call.setEnabled(false); sms.setEnabled(false);
         gps = new DeviceLocation(this, location -> render(), message -> NavigationHelper.showSnack(this, message));
         bind("detail", (SosApiModels.SosSingleResponse response) -> {
-            current = response.getSos(); clearStatus(); render();
+            SosRequest previous = current;
+            current = response.getSos();
+            if (current != null && previous != null && previous.isOsrmLoaded()
+                    && previous.getOsrmDistanceKm() != null && previous.getOsrmDurationMinutes() != null) {
+                current.setOsrmRoute(previous.getRoutePoints(), previous.getOsrmDistanceKm(), previous.getOsrmDurationMinutes());
+            }
+            clearStatus(); render();
             if (current == null) showStatus("Không tìm thấy yêu cầu cứu hộ.", this::load);
         }, error -> showApiError(error, this::load), value -> { if (value) showLoading("Đang tải chi tiết SOS…"); });
         bind("accept", (SosApiModels.AcceptSosResponse response) -> {
@@ -71,13 +78,32 @@ public class SosDetailActivity extends MapApiActivity {
         LocationCurrent victim = SosMapData.victim(current);
         ((TextView) findViewById(R.id.tvAddress)).setText(SosMapData.coordinates(victim));
         String distance = "Cần GPS thiết bị để tính khoảng cách";
-        if (victim != null && gps.getLatest() != null) distance = String.format(Locale.US, "Cách %.1f km (đường thẳng)",
-                SosRequest.computeHaversineKm(gps.getLatest().getLatitude(), gps.getLatest().getLongitude(), victim.getLat(), victim.getLng()));
+        if (victim != null && gps.getLatest() != null) {
+            double rLat = gps.getLatest().getLatitude(), rLng = gps.getLatest().getLongitude();
+            OsrmRouter.RouteResult cached = OsrmRouter.getCached(rLat, rLng, victim.getLat(), victim.getLng());
+            if (cached != null && !current.isOsrmLoaded()) {
+                current.setOsrmRoute(cached.getPoints(), cached.getDistanceKm(), cached.getDurationMinutes());
+            } else if (!current.isOsrmLoaded()) {
+                final SosRequest target = current;
+                OsrmRouter.fetchRoute(rLat, rLng, victim.getLat(), victim.getLng(), result -> {
+                    if (current != target || isFinishing()) return;
+                    current.setOsrmRoute(result.getPoints(), result.getDistanceKm(), result.getDurationMinutes());
+                    render();
+                });
+            }
+            if (current.isOsrmLoaded() && current.getOsrmDistanceKm() != null) {
+                long etaMin = current.getOsrmDurationMinutes() == null ? 1L : Math.max(1L, Math.round(current.getOsrmDurationMinutes()));
+                distance = String.format(Locale.US, "Cách %.1f km (đường bộ • ~%d phút)", current.getOsrmDistanceKm(), etaMin);
+            } else {
+                distance = String.format(Locale.US, "Cách %.1f km (đường thẳng)",
+                        SosRequest.computeHaversineKm(rLat, rLng, victim.getLat(), victim.getLng()));
+            }
+        }
         ((TextView) findViewById(R.id.tvCoordinates)).setText(distance);
         accept.setEnabled(!busy && SosRules.canAccept(current.getStatus()));
         if (!SosRules.canAccept(current.getStatus())) accept.setText(current.getStatusLabel());
         call.setEnabled(current.getRequesterPhone() != null); sms.setEnabled(current.getRequesterPhone() != null);
-        if (mapReady) SosMapData.draw(this, map, current, Collections.emptyList(), true);
+        if (mapReady) SosMapData.draw(this, map, current, Collections.emptyList(), gps.getLatest(), true);
     }
     @Override protected void onStart() { super.onStart(); if (sos != null) load(); }
 }
