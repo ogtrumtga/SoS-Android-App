@@ -356,6 +356,7 @@ public class SosRequest implements Serializable {
         if (STATUS_ARRIVED.equals(status)) return "Đã tới hiện trường";
         if (STATUS_COMPLETED.equals(status)) return "Đã hoàn thành";
         if (STATUS_CANCELLED.equals(status)) return "Đã hủy";
+        if ("RELEASED".equals(status)) return "Đã nhả ca";
         return status != null ? status : "Đang xử lý";
     }
 

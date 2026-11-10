@@ -22,6 +22,19 @@ public final class ApiDisplay {
             return date == null ? iso : new SimpleDateFormat("HH:mm • dd/MM/yyyy", Locale.getDefault()).format(date);
         } catch (ParseException exception) { return iso; }
     }
+    public static String shortTime(String iso) {
+        if (iso == null || iso.trim().isEmpty()) return "—";
+        String normalized = iso.replaceFirst("\\.\\d+", "").replaceFirst("Z$", "+0000")
+                .replaceFirst("([+-]\\d{2}):(\\d{2})$", "$1$2");
+        boolean offset = normalized.matches(".*[+-]\\d{4}$");
+        SimpleDateFormat parser = new SimpleDateFormat(offset ? "yyyy-MM-dd'T'HH:mm:ssZ" : "yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+        parser.setLenient(false);
+        if (!offset) parser.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            Date date = parser.parse(normalized);
+            return date == null ? iso : new SimpleDateFormat("HH:mm • dd/MM", Locale.getDefault()).format(date);
+        } catch (ParseException exception) { return iso; }
+    }
     public static String endReason(String reason) {
         if (reason == null || reason.isEmpty()) return "Chưa có thông tin";
         if ("USER_CANCELLED".equals(reason)) return "Người gửi đã hủy yêu cầu";

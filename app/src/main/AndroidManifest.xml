@@ -83,6 +83,10 @@
             android:name=".ui.rescuer.RescuerMapActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.rescuer.RescuerMissionsActivity"
+            android:exported="false" />
+
         <!-- 8. Chi tiết tin báo SOS (RESCUER) -->
         <activity
             android:name=".ui.rescuer.SosDetailActivity"

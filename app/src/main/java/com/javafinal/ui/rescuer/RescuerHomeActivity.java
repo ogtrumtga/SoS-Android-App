@@ -105,10 +105,7 @@ public class RescuerHomeActivity extends ApiActivity {
             if (id == R.id.nav_rescuer_requests) { refresh(); return true; }
             if (id == R.id.nav_rescuer_team) startActivity(new android.content.Intent(this, RescueTeamActivity.class));
             else if (id == R.id.nav_rescuer_map) startActivity(new android.content.Intent(this, RescuerMapActivity.class));
-            else if (id == R.id.nav_rescuer_missions) {
-                if (active != null) openActive();
-                else NavigationHelper.showSnack(this, "Đội chưa có ca cứu hộ đang xử lý.");
-            }
+            else if (id == R.id.nav_rescuer_missions) startActivity(new android.content.Intent(this, RescuerMissionsActivity.class));
             return false;
         });
         realtime.getMessages().observe(this, message -> {

@@ -115,7 +115,7 @@ public class RescuerMapActivity extends MapApiActivity {
                 startActivity(new Intent(this, RescuerHomeActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
                 finish();
-            } else if (id == R.id.nav_rescuer_missions) openCurrentMission();
+            } else if (id == R.id.nav_rescuer_missions) startActivity(new Intent(this, RescuerMissionsActivity.class));
             else if (id == R.id.nav_rescuer_team) startActivity(new Intent(this, RescueTeamActivity.class));
             return false;
         });

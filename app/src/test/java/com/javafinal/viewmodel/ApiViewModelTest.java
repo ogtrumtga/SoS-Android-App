@@ -124,6 +124,7 @@ public class ApiViewModelTest {
         endpoint("PUT", "/api/sos/notifications/n1/read", true, "{}", () -> notifications.markAsRead("n1"));
         endpoint("GET", "/api/rescuer/queue", true, null, rescuers::loadQueue);
         endpoint("GET", "/api/rescuer/my-active", true, null, rescuers::loadMyActive);
+        endpoint("GET", "/api/rescuer/missions", true, null, rescuers::loadMyMissions);
         endpoint("POST", "/api/rescuer/sos/s1/accept", true, "{}", () -> rescuers.acceptSos("s1"));
         endpoint("POST", "/api/rescuer/sos/s1/status", true, "{\"status\":\"RESCUING\"}",
                 () -> rescuers.updateMissionStatus("s1", "RESCUING"));

@@ -19,6 +19,11 @@ public final class RescuerViewModel extends BaseApiViewModel {
                 null, ActiveSosResponse::getSos);
     }
 
+    public LiveData<ApiState<RescuerQueueResponse>> loadMyMissions() {
+        return request("GET", "api/rescuer/missions", null, true, RescuerQueueResponse.class,
+                null, RescuerQueueResponse::getData);
+    }
+
     public LiveData<ApiState<RescuerMapResponse>> loadMap() {
         return request("GET", "api/rescuer/map", null, true, RescuerMapResponse.class, null, null);
     }
