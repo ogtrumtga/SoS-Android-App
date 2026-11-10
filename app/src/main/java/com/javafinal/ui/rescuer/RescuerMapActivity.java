@@ -82,10 +82,10 @@ public class RescuerMapActivity extends MapApiActivity {
         });
         // Chỉ đọc ca hiện tại khi chọn đúng mục này, không dùng dữ liệu ca để vẽ bản đồ tổng quan.
         bind("mission", (SosApiModels.ActiveSosResponse response) -> {
+            clearStatus();
             if (response.isActive() && response.getSos() != null) {
-                clearStatus();
                 openSos(RealtimeTrackingActivity.class, response.getSos().getId());
-            } else showStatus("Đội chưa có ca cứu hộ đang xử lý.", this::openCurrentMission);
+            } else NavigationHelper.showSnack(this, "Đội chưa có ca cứu hộ đang xử lý.");
         }, error -> showApiError(error, this::openCurrentMission), null);
 
         ((ChipGroup) findViewById(R.id.chipGroupFilter)).setOnCheckedStateChangeListener((group, ids) -> {
@@ -184,14 +184,7 @@ public class RescuerMapActivity extends MapApiActivity {
     private void updateStatus() {
         if (mapError != null) { showApiError(mapError, this::refresh); return; }
         if (mapLoading) { showLoading("Đang tải bản đồ SOS…"); return; }
-        for (SosRequest point : points) {
-            if (point == null || !matchesFilter(point)) continue;
-            com.javafinal.model.LocationCurrent victim = SosMapData.victim(point);
-            if (victim != null && SosMapData.valid(victim.getLat(), victim.getLng())) {
-                clearStatus(); return;
-            }
-        }
-        showStatus("ALL".equals(filter) ? "Chưa có SOS đang hoạt động." : "Không có SOS phù hợp bộ lọc.", this::refresh);
+        clearStatus();
     }
 
     @Override protected void onStart() {

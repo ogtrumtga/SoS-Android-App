@@ -94,7 +94,7 @@ public class HomeActivity extends MapApiActivity {
             if (item.getItemId() == R.id.nav_home) { refresh(); return true; }
             if (item.getItemId() == R.id.nav_requests) {
                 if (active != null) openActive();
-                else showStatus("Bạn chưa có SOS đang hoạt động.", this::refresh);
+                else NavigationHelper.showSnack(this, "Bạn chưa có SOS đang hoạt động.");
             } else if (item.getItemId() == R.id.nav_alerts) NavigationHelper.openNotifications(this);
             else if (item.getItemId() == R.id.nav_settings) NavigationHelper.showProfileDialog(this, this::renderBanner);
             return false;
@@ -152,7 +152,6 @@ public class HomeActivity extends MapApiActivity {
     private void updateStatus() {
         if (mapError != null || activeError != null) showApiError(mapError != null ? mapError : activeError, this::refresh);
         else if (mapLoading || activeLoading) showLoading("Đang tải bản đồ cứu hộ…");
-        else if (points.isEmpty()) showStatus("Chưa có cảnh báo SOS công khai.", this::refresh);
         else clearStatus();
     }
     private void openActive() { if (active != null) openSos(TrackSosActivity.class, active.getId()); }

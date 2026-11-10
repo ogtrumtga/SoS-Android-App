@@ -107,7 +107,7 @@ public class RescuerHomeActivity extends ApiActivity {
             else if (id == R.id.nav_rescuer_map) startActivity(new android.content.Intent(this, RescuerMapActivity.class));
             else if (id == R.id.nav_rescuer_missions) {
                 if (active != null) openActive();
-                else showStatus("Đội chưa có ca cứu hộ đang xử lý.", this::refresh);
+                else NavigationHelper.showSnack(this, "Đội chưa có ca cứu hộ đang xử lý.");
             }
             return false;
         });
@@ -182,8 +182,7 @@ public class RescuerHomeActivity extends ApiActivity {
         ((TextView) findViewById(R.id.tvHighPriorityCount)).setText(String.valueOf(publicCount));
         ((TextView) findViewById(R.id.tvScanRadius)).setText(String.valueOf(privateCount));
         if (!queueLoading) {
-            if (filtered.isEmpty()) showStatus(queue.isEmpty() ? "Chưa có yêu cầu cứu hộ đang chờ." : "Không có yêu cầu phù hợp bộ lọc.", this::refresh);
-            else clearStatus();
+            clearStatus();
         }
     }
     private void openActive() { if (active != null) openSos(RealtimeTrackingActivity.class, active.getId()); }
