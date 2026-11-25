@@ -5,6 +5,9 @@
     <string name="mission_date_from">Từ ngày</string>
     <string name="mission_date_to">Đến ngày</string>
     <string name="mission_all_dates">Tất cả</string>
+    <string name="mission_emergency_type">Loại sự cố</string>
+    <string name="mission_all_types">Tất cả loại sự cố</string>
+    <string name="mission_filter_empty">Không có ca cứu hộ phù hợp bộ lọc.</string>
     <string name="mission_statistics_summary">%1$d ca đã giải cứu · %2$s km đã di chuyển</string>
     <string name="mission_statistics_loading">Đang tải thống kê…</string>
     <string name="mission_statistics_error">Chưa tải được thống kê.</string>

@@ -10,8 +10,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +27,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.javafinal.R;
+import com.javafinal.model.EmergencyType;
 import com.javafinal.model.SosApiModels;
 import com.javafinal.model.SosLog;
 import com.javafinal.model.SosRequest;
@@ -41,6 +45,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
 /** Màn hình danh sách tất cả các ca cứu hộ của rescuer (ca hiện tại nổi bật + lịch sử kèm nhật ký). */
@@ -56,6 +61,9 @@ public class RescuerMissionsActivity extends ApiActivity {
     private boolean loadingMissions;
     private String dateFrom;
     private String dateTo;
+    private String emergencyTypeId;
+    private Spinner typeSpinner;
+    private final List<String> emergencyTypeIds = new ArrayList<>();
     private MaterialButton dateFromButton;
     private MaterialButton dateToButton;
     private MaterialButton allDatesButton;
@@ -87,17 +95,34 @@ public class RescuerMissionsActivity extends ApiActivity {
         if (state != null) {
             dateFrom = state.getString("mission_date_from");
             dateTo = state.getString("mission_date_to");
+            emergencyTypeId = state.getString("mission_emergency_type_id");
         }
         dateFromButton = findViewById(R.id.btnMissionDateFrom);
         dateToButton = findViewById(R.id.btnMissionDateTo);
         allDatesButton = findViewById(R.id.btnMissionAllDates);
         statisticsText = findViewById(R.id.tvMissionStatistics);
+        typeSpinner = findViewById(R.id.spinnerMissionType);
+        updateTypeSpinner(EmergencyType.getCachedAll());
+        typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selected = emergencyTypeIds.get(position);
+                if (Objects.equals(selected, emergencyTypeId)) return;
+                emergencyTypeId = selected;
+                loadMissions();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) { }
+        });
         updateDateButtons();
         dateFromButton.setOnClickListener(v -> pickDate(true));
         dateToButton.setOnClickListener(v -> pickDate(false));
         allDatesButton.setOnClickListener(v -> {
             dateFrom = null;
             dateTo = null;
+            emergencyTypeId = null;
+            typeSpinner.setSelection(0);
             updateDateButtons();
             loadMissions();
         });
@@ -114,7 +139,10 @@ public class RescuerMissionsActivity extends ApiActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(adapter);
 
-        bind("types", (SosApiModels.EmergencyTypeListResponse response) -> render(), error -> { }, null);
+        bind("types", (SosApiModels.EmergencyTypeListResponse response) -> {
+            updateTypeSpinner(response.getData());
+            render();
+        }, error -> showApiError(error, this::refresh), null);
         bind("active", (SosApiModels.ActiveSosResponse response) -> {
             activeMission = response.isActive() ? response.getSos() : null;
             render();
@@ -135,6 +163,7 @@ public class RescuerMissionsActivity extends ApiActivity {
             dateFromButton.setEnabled(!busy);
             dateToButton.setEnabled(!busy);
             allDatesButton.setEnabled(!busy);
+            typeSpinner.setEnabled(!busy);
             if (busy) {
                 showLoading("Đang tải các ca của bạn…");
                 statisticsText.setText(R.string.mission_statistics_loading);
@@ -195,7 +224,34 @@ public class RescuerMissionsActivity extends ApiActivity {
     }
 
     private void loadMissions() {
-        execute("missions", () -> rescuer.loadMyMissions(dateFrom, dateTo));
+        execute("missions", () -> rescuer.loadMyMissions(dateFrom, dateTo, emergencyTypeId));
+    }
+
+    private void updateTypeSpinner(List<EmergencyType> items) {
+        AdapterView.OnItemSelectedListener listener = typeSpinner.getOnItemSelectedListener();
+        typeSpinner.setOnItemSelectedListener(null);
+        List<String> labels = new ArrayList<>();
+        labels.add(getString(R.string.mission_all_types));
+        emergencyTypeIds.clear();
+        emergencyTypeIds.add(null);
+        if (items != null) {
+            for (EmergencyType item : items) {
+                if (item == null || item.getId() == null) continue;
+                emergencyTypeIds.add(item.getId());
+                labels.add(item.getDisplayLabel());
+            }
+        }
+        // Giữ lựa chọn khi danh mục chưa tải xong, kể cả sau khi xoay màn hình.
+        if (emergencyTypeId != null && !emergencyTypeIds.contains(emergencyTypeId)) {
+            emergencyTypeIds.add(emergencyTypeId);
+            labels.add(EmergencyType.resolveLabel(emergencyTypeId, null));
+        }
+        ArrayAdapter<String> choices = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, labels);
+        choices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeSpinner.setAdapter(choices);
+        typeSpinner.setSelection(emergencyTypeIds.indexOf(emergencyTypeId));
+        typeSpinner.setOnItemSelectedListener(listener);
     }
 
     private void pickDate(boolean from) {
@@ -246,8 +302,8 @@ public class RescuerMissionsActivity extends ApiActivity {
         }
         adapter.submitList(combined, activeId);
         TextView empty = findViewById(R.id.tvMissionsEmpty);
-        empty.setText(dateFrom != null || dateTo != null
-                ? getString(R.string.mission_date_range_empty) : "Chưa có ca cứu hộ nào.");
+        empty.setText(dateFrom != null || dateTo != null || emergencyTypeId != null
+                ? getString(R.string.mission_filter_empty) : "Chưa có ca cứu hộ nào.");
         empty.setVisibility(
                 !loadingMissions && combined.isEmpty() ? View.VISIBLE : View.GONE);
     }
@@ -374,6 +430,7 @@ public class RescuerMissionsActivity extends ApiActivity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("mission_date_from", dateFrom);
         outState.putString("mission_date_to", dateTo);
+        outState.putString("mission_emergency_type_id", emergencyTypeId);
         super.onSaveInstanceState(outState);
     }
 

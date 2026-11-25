@@ -25,10 +25,16 @@ public final class RescuerViewModel extends BaseApiViewModel {
     }
 
     public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions(String dateFrom, String dateTo) {
+        return loadMyMissions(dateFrom, dateTo, null);
+    }
+
+    public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions(
+            String dateFrom, String dateTo, String emergencyTypeId) {
         return request("GET", () -> {
             HttpUrl.Builder url = api.url("api/rescuer/missions").newBuilder();
             if (dateFrom != null) url.addQueryParameter("date_from", dateFrom);
             if (dateTo != null) url.addQueryParameter("date_to", dateTo);
+            if (emergencyTypeId != null) url.addQueryParameter("emergency_type_id", emergencyTypeId);
             return url.build().toString();
         }, null, true, RescuerMissionsResponse.class, null, RescuerMissionsResponse::getData);
     }

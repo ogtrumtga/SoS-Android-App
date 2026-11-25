@@ -78,6 +78,21 @@
             </LinearLayout>
 
             <TextView
+                style="@style/Text.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:labelFor="@+id/spinnerMissionType"
+                android:text="@string/mission_emergency_type" />
+
+            <Spinner
+                android:id="@+id/spinnerMissionType"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:saveEnabled="false"
+                android:spinnerMode="dropdown" />
+
+            <TextView
                 android:id="@+id/tvMissionStatistics"
                 style="@style/Text.Title"
                 android:layout_width="match_parent"
