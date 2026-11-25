@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import com.javafinal.model.SosApiModels.*;
 import com.javafinal.model.SosRequest;
 import com.javafinal.network.ApiClient;
+import java.util.Locale;
 import okhttp3.HttpUrl;
 
 /** API #16–22. RB05/RB06 và phân quyền được kiểm tra nguyên tử ở backend. */
@@ -20,17 +21,9 @@ public final class RescuerViewModel extends BaseApiViewModel {
                 null, ActiveSosResponse::getSos);
     }
 
-    public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions() {
-        return loadMyMissions(null, null);
-    }
-
-    public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions(String dateFrom, String dateTo) {
-        return request("GET", () -> {
-            HttpUrl.Builder url = api.url("api/rescuer/missions").newBuilder();
-            if (dateFrom != null) url.addQueryParameter("date_from", dateFrom);
-            if (dateTo != null) url.addQueryParameter("date_to", dateTo);
-            return url.build().toString();
-        }, null, true, RescuerMissionsResponse.class, null, RescuerMissionsResponse::getData);
+    public LiveData<ApiState<RescuerQueueResponse>> loadMyMissions() {
+        return request("GET", "api/rescuer/missions", null, true, RescuerQueueResponse.class,
+                null, RescuerQueueResponse::getData);
     }
 
     public LiveData<ApiState<RescuerMapResponse>> loadMap() {
@@ -68,6 +61,25 @@ public final class RescuerViewModel extends BaseApiViewModel {
 
     public LiveData<ApiState<RescueTeamsResponse>> loadTeams() {
         return request("GET", "api/rescuer/teams", null, true, RescueTeamsResponse.class, null, null);
+    }
+
+    public LiveData<ApiState<RescuerStatsResponse>> loadStats(
+            String period, String date, String month, String emergencyTypeId) {
+        String normalizedPeriod = period == null ? "ALL" : period.trim().toUpperCase(Locale.ROOT);
+        return request("GET", () -> {
+            HttpUrl.Builder url = api.url("api/rescuer/stats").newBuilder();
+            url.addQueryParameter("period", normalizedPeriod);
+            if ("DAY".equals(normalizedPeriod) && date != null && !date.trim().isEmpty()) {
+                url.addQueryParameter("date", date.trim());
+            } else if ("MONTH".equals(normalizedPeriod) && month != null && !month.trim().isEmpty()) {
+                url.addQueryParameter("month", month.trim());
+            }
+            if (emergencyTypeId != null && !emergencyTypeId.trim().isEmpty()) {
+                url.addQueryParameter("emergency_type_id", emergencyTypeId.trim());
+            }
+            return url.build().toString();
+        }, null, true, RescuerStatsResponse.class,
+                () -> InputValidator.oneOf(normalizedPeriod, "Kỳ thống kê", "ALL", "DAY", "MONTH"), null);
     }
 
     private String actionPath(String sosId, String action) {

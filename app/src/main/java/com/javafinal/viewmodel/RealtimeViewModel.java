@@ -20,9 +20,7 @@ import okhttp3.WebSocketListener;
 
 /** API #26: auth, heartbeat JSON, reconnect và đăng ký lại các phòng SOS. */
 public final class RealtimeViewModel extends BaseApiViewModel {
-    public enum ConnectionState {
-        DISCONNECTED, CONNECTING, CONNECTED, RECONNECTING, ERROR
-    }
+    public enum ConnectionState { DISCONNECTED, CONNECTING, CONNECTED, RECONNECTING, ERROR }
 
     private final MutableLiveData<ConnectionState> connection = new MutableLiveData<>(ConnectionState.DISCONNECTED);
     private final MutableLiveData<WebSocketMessage> messages = new MutableLiveData<>();
@@ -55,21 +53,12 @@ public final class RealtimeViewModel extends BaseApiViewModel {
         api.getSession().addListener(sessionListener);
     }
 
-    public LiveData<ConnectionState> getConnectionState() {
-        return connection;
-    }
-
-    public LiveData<WebSocketMessage> getMessages() {
-        return messages;
-    }
-
-    public LiveData<ApiError> getErrors() {
-        return errors;
-    }
+    public LiveData<ConnectionState> getConnectionState() { return connection; }
+    public LiveData<WebSocketMessage> getMessages() { return messages; }
+    public LiveData<ApiError> getErrors() { return errors; }
 
     public void connect() {
-        if (disposed || wanted)
-            return;
+        if (disposed || wanted) return;
         if (!api.getSession().isLoggedIn()) {
             errors.setValue(ApiError.unauthorized());
             connection.setValue(ConnectionState.ERROR);
@@ -82,8 +71,7 @@ public final class RealtimeViewModel extends BaseApiViewModel {
     }
 
     private void open(int attempt) {
-        if (!wanted || disposed || attempt != generation)
-            return;
+        if (!wanted || disposed || attempt != generation) return;
         connection.setValue(retryCount == 0 ? ConnectionState.CONNECTING : ConnectionState.RECONNECTING);
         Request request = new Request.Builder().url(api.url("ws").newBuilder()
                 .addQueryParameter("token", connectedToken).build()).build();
@@ -91,28 +79,23 @@ public final class RealtimeViewModel extends BaseApiViewModel {
             private void dispatch(WebSocket webSocket, Runnable action) {
                 api.getCallbackExecutor().execute(() -> {
                     if (!disposed && wanted && generation == attempt && socket == webSocket
-                            && Objects.equals(connectedToken, api.getSession().getAccessToken()))
-                        action.run();
+                            && Objects.equals(connectedToken, api.getSession().getAccessToken())) action.run();
                 });
             }
 
-            @Override
-            public void onOpen(WebSocket webSocket, Response response) {
+            @Override public void onOpen(WebSocket webSocket, Response response) {
                 dispatch(webSocket, () -> {
                     retryCount = 0;
                     errors.setValue(null);
                     connection.setValue(ConnectionState.CONNECTED);
-                    for (String id : subscriptions)
-                        webSocket.send(RealtimeProtocol.subscribe(id));
+                    for (String id : subscriptions) webSocket.send(RealtimeProtocol.subscribe(id));
                     heartbeat = scheduler.scheduleWithFixedDelay(() -> api.getCallbackExecutor().execute(() -> {
-                        if (attempt == generation && wanted && socket == webSocket)
-                            ping();
+                        if (attempt == generation && wanted && socket == webSocket) ping();
                     }), 25, 25, TimeUnit.SECONDS);
                 });
             }
 
-            @Override
-            public void onMessage(WebSocket webSocket, String text) {
+            @Override public void onMessage(WebSocket webSocket, String text) {
                 dispatch(webSocket, () -> {
                     try {
                         WebSocketMessage message = RealtimeProtocol.decode(api.getGson(), text);
@@ -128,23 +111,19 @@ public final class RealtimeViewModel extends BaseApiViewModel {
                 });
             }
 
-            @Override
-            public void onClosing(WebSocket webSocket, int code, String reason) {
+            @Override public void onClosing(WebSocket webSocket, int code, String reason) {
                 webSocket.close(code, reason);
             }
 
-            @Override
-            public void onClosed(WebSocket webSocket, int code, String reason) {
+            @Override public void onClosed(WebSocket webSocket, int code, String reason) {
                 dispatch(webSocket, () -> {
                     if (code == 1008 || code == 4401 || code == 4403) {
                         stopForAuth(code == 4403 ? 403 : 401);
-                    } else
-                        retry(attempt);
+                    } else retry(attempt);
                 });
             }
 
-            @Override
-            public void onFailure(WebSocket webSocket, Throwable exception, Response response) {
+            @Override public void onFailure(WebSocket webSocket, Throwable exception, Response response) {
                 dispatch(webSocket, () -> {
                     if (response != null && (response.code() == 401 || response.code() == 403)) {
                         stopForAuth(response.code());
@@ -161,18 +140,15 @@ public final class RealtimeViewModel extends BaseApiViewModel {
     private void stopForAuth(int code) {
         String token = connectedToken;
         disconnect();
-        if (code == 401)
-            api.getSession().clearIfToken(token);
+        if (code == 401) api.getSession().clearIfToken(token);
         errors.setValue(new ApiError(code == 401 ? ApiError.Kind.UNAUTHORIZED : ApiError.Kind.HTTP,
                 code, "Không có quyền kết nối realtime. Vui lòng kiểm tra phiên đăng nhập.", null, null));
         connection.setValue(ConnectionState.ERROR);
     }
 
     private void retry(int attempt) {
-        if (heartbeat != null)
-            heartbeat.cancel(false);
-        if (!wanted || disposed || attempt != generation)
-            return;
+        if (heartbeat != null) heartbeat.cancel(false);
+        if (!wanted || disposed || attempt != generation) return;
         socket = null;
         connection.setValue(ConnectionState.RECONNECTING);
         long delay = Math.min(30, 1L << Math.min(retryCount++, 5));
@@ -181,13 +157,9 @@ public final class RealtimeViewModel extends BaseApiViewModel {
                 delay, TimeUnit.SECONDS);
     }
 
-    /**
-     * Có thể gọi trước connect(); phòng sẽ được đăng ký sau khi handshake thành
-     * công.
-     */
+    /** Có thể gọi trước connect(); phòng sẽ được đăng ký sau khi handshake thành công. */
     public void subscribeSos(String sosId) {
-        if (disposed)
-            return;
+        if (disposed) return;
         try {
             String payload = RealtimeProtocol.subscribe(sosId);
             if (subscriptions.add(sosId.trim()) && connection.getValue() == ConnectionState.CONNECTED) {
@@ -198,9 +170,7 @@ public final class RealtimeViewModel extends BaseApiViewModel {
         }
     }
 
-    public void ping() {
-        send(RealtimeProtocol.ping());
-    }
+    public void ping() { send(RealtimeProtocol.ping()); }
 
     private void send(String payload) {
         if (socket == null || connection.getValue() != ConnectionState.CONNECTED || !socket.send(payload)) {
@@ -213,10 +183,8 @@ public final class RealtimeViewModel extends BaseApiViewModel {
     public void disconnect() {
         wanted = false;
         generation++;
-        if (heartbeat != null)
-            heartbeat.cancel(false);
-        if (reconnect != null)
-            reconnect.cancel(false);
+        if (heartbeat != null) heartbeat.cancel(false);
+        if (reconnect != null) reconnect.cancel(false);
         if (socket != null) {
             socket.close(1000, "Client disconnected");
             socket = null;
@@ -224,8 +192,7 @@ public final class RealtimeViewModel extends BaseApiViewModel {
         connection.setValue(ConnectionState.DISCONNECTED);
     }
 
-    @Override
-    protected void onCleared() {
+    @Override protected void onCleared() {
         disposed = true;
         api.getSession().removeListener(sessionListener);
         disconnect();

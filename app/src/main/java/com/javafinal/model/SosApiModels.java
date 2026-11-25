@@ -489,24 +489,6 @@ public final class SosApiModels {
         }
     }
 
-    public static class RescuerMissionsResponse extends RescuerQueueResponse {
-        @SerializedName("statistics")
-        private MissionStatistics statistics;
-
-        public MissionStatistics getStatistics() { return statistics; }
-    }
-
-    public static class MissionStatistics implements Serializable {
-        @SerializedName("completed_count")
-        private int completedCount;
-
-        @SerializedName("total_distance_km")
-        private double totalDistanceKm;
-
-        public int getCompletedCount() { return completedCount; }
-        public double getTotalDistanceKm() { return totalDistanceKm; }
-    }
-
     /**
      * Kết quả trả về từ API #18 ({@code POST /api/rescuer/sos/{id}/accept}).
      */
@@ -810,6 +792,147 @@ public final class SosApiModels {
 
         public List<LocationHistory> getTrail() {
             return trail;
+        }
+    }
+
+    /**
+     * Tổng hợp số ca giải cứu và quãng đường di chuyển trong thống kê đội cứu hộ.
+     */
+    public static class StatsSummary implements Serializable {
+        @SerializedName("rescued_count")
+        private int rescuedCount;
+
+        @SerializedName("distance_km")
+        private double distanceKm;
+
+        @SerializedName("tracked_missions")
+        private int trackedMissions;
+
+        public int getRescuedCount() {
+            return rescuedCount;
+        }
+
+        public double getDistanceKm() {
+            return distanceKm;
+        }
+
+        public int getTrackedMissions() {
+            return trackedMissions;
+        }
+    }
+
+    /**
+     * Số liệu thống kê chi tiết theo từng loại sự cố ({@code emergency_types}).
+     */
+    public static class EmergencyTypeStat implements Serializable {
+        @SerializedName("emergency_type_id")
+        private String emergencyTypeId;
+
+        @SerializedName("emergency_type")
+        private String emergencyType;
+
+        @SerializedName("description")
+        private String description;
+
+        @SerializedName("rescued_count")
+        private int rescuedCount;
+
+        @SerializedName("distance_km")
+        private double distanceKm;
+
+        @SerializedName("tracked_missions")
+        private int trackedMissions;
+
+        public String getEmergencyTypeId() {
+            return emergencyTypeId;
+        }
+
+        public String getEmergencyType() {
+            return emergencyType;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public int getRescuedCount() {
+            return rescuedCount;
+        }
+
+        public double getDistanceKm() {
+            return distanceKm;
+        }
+
+        public int getTrackedMissions() {
+            return trackedMissions;
+        }
+
+        public String getDisplayLabel() {
+            if (description != null && !description.trim().isEmpty()) {
+                return new EmergencyType(emergencyTypeId, emergencyType, description, null).getDisplayLabel();
+            }
+            return EmergencyType.resolveLabel(emergencyTypeId, emergencyType);
+        }
+    }
+
+    /**
+     * Kết quả trả về từ API {@code GET /api/rescuer/stats}.
+     */
+    public static class RescuerStatsResponse implements Serializable {
+        @SerializedName("success")
+        private boolean success;
+
+        @SerializedName("period")
+        private String period;
+
+        @SerializedName("date")
+        private String date;
+
+        @SerializedName("month")
+        private String month;
+
+        @SerializedName("emergency_type_id")
+        private String emergencyTypeId;
+
+        @SerializedName("summary")
+        private StatsSummary summary;
+
+        @SerializedName("overall")
+        private StatsSummary overall;
+
+        @SerializedName("by_emergency_type")
+        private List<EmergencyTypeStat> byEmergencyType = new ArrayList<>();
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getPeriod() {
+            return period;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public String getMonth() {
+            return month;
+        }
+
+        public String getEmergencyTypeId() {
+            return emergencyTypeId;
+        }
+
+        public StatsSummary getSummary() {
+            return summary;
+        }
+
+        public StatsSummary getOverall() {
+            return overall;
+        }
+
+        public List<EmergencyTypeStat> getByEmergencyType() {
+            return byEmergencyType;
         }
     }
 }

@@ -57,16 +57,25 @@
 | **20** | Cứu hộ | `POST` | `/api/rescuer/sos/{id}/release`| Rescuer Token| Nhả ca (quay về `WAITING`, xóa vị trí cứu hộ) |
 | **21** | Cứu hộ | `POST` | `/api/rescuer/sos/{id}/complete`| Rescuer Token| Hoàn thành ca cứu hộ (`COMPLETED`, xóa vị trí realtime)|
 | **22** | Cứu hộ | `GET` | `/api/rescuer/teams` | Rescuer Token| Lấy danh sách đội cứu hộ và thành viên (`rescue_teams`) |
-| **23** | Định vị| `POST` | `/api/location/{sos_id}` | Bearer Token | Cập nhật GPS mới nhất, upsert `location_current` |
-| **24** | Định vị| `GET` | `/api/location/{sos_id}/current`| Bearer Token| Lấy tọa độ mới nhất của 2 bên (`VICTIM` & `RESCUER`) |
-| **25** | Định vị| `GET` | `/api/location/{sos_id}/trail` | Bearer Token| Lấy danh sách tọa độ lịch sử để vẽ Polyline |
-| **26** | Realtime| `WS` | `/ws?token={jwt}` | Query / Auth | Kênh WebSocket hai chiều thời gian thực |
-| **27** | Loại sự cố| `GET` | `/api/emergency-types` | Không | Lấy danh mục tất cả loại sự cố (phục vụ dropdown SOS) |
-| **28** | Loại sự cố| `GET` | `/api/emergency-types/{id}`| Không | Lấy thông tin chi tiết một loại sự cố |
-| **29** | Loại sự cố| `POST` | `/api/emergency-types` | Bearer Token | Tạo mới loại sự cố khẩn cấp |
-| **30** | Loại sự cố| `PUT` | `/api/emergency-types/{id}`| Bearer Token | Cập nhật tên/mô tả loại sự cố |
-| **31** | Loại sự cố| `DELETE` | `/api/emergency-types/{id}`| Bearer Token| Xóa loại sự cố (chặn xóa nếu đang có SOS sử dụng) |
-| **32** | Hệ thống| `GET` | `/health` | Không | Kiểm tra trạng thái máy chủ và kết nối PostgreSQL |
+| **23** | Cứu hộ | `GET` | `/api/rescuer/map` | Rescuer Token| Bản đồ SOS dành riêng cho đội cứu hộ (tọa độ chuẩn xác) |
+| **24** | Đội viên | `GET` | `/api/rescuer/teams/mine` | Rescuer Token| Lấy danh sách đội mà tài khoản đang tham gia |
+| **25** | Đội viên | `GET` | `/api/rescuer/teams/{team_id}/members` | Rescuer Token| Danh sách thành viên của đội |
+| **26** | Đội viên | `POST` | `/api/rescuer/teams/{team_id}/members` | Leader Token | Thêm thành viên mới vào đội |
+| **27** | Đội viên | `PUT` | `/api/rescuer/teams/{team_id}/members/{member_id}` | Leader Token | Sửa vai trò thành viên (LEADER, MEMBER, DRIVER, MEDIC) |
+| **28** | Đội viên | `DELETE` | `/api/rescuer/teams/{team_id}/members/{member_id}` | Leader Token | Xóa thành viên khỏi đội |
+| **29** | Định vị| `POST` | `/api/location/{sos_id}` | Bearer Token | Cập nhật GPS mới nhất, upsert `location_current` |
+| **30** | Định vị| `GET` | `/api/location/{sos_id}/current`| Bearer Token| Lấy tọa độ mới nhất của 2 bên (`VICTIM` & `RESCUER`) |
+| **31** | Định vị| `GET` | `/api/location/{sos_id}/trail` | Bearer Token| Lấy danh sách tọa độ lịch sử để vẽ Polyline |
+| **32** | Realtime| `WS` | `/ws?token={jwt}` | Query / Auth | Kênh WebSocket hai chiều thời gian thực |
+| **33** | Loại sự cố| `GET` | `/api/emergency-types` | Không | Lấy danh mục tất cả loại sự cố (phục vụ dropdown SOS) |
+| **34** | Loại sự cố| `GET` | `/api/emergency-types/{id}`| Không | Lấy thông tin chi tiết một loại sự cố |
+| **35** | Loại sự cố| `POST` | `/api/emergency-types` | Bearer Token | Tạo mới loại sự cố khẩn cấp |
+| **36** | Loại sự cố| `PUT` | `/api/emergency-types/{id}`| Bearer Token | Cập nhật tên/mô tả loại sự cố |
+| **37** | Loại sự cố| `DELETE` | `/api/emergency-types/{id}`| Bearer Token| Xóa loại sự cố (chặn xóa nếu đang có SOS sử dụng) |
+| **38** | Quản trị | `GET` | `/api/admin/overview` | Admin Token  | Thống kê tổng quan hệ thống cho Admin Dashboard |
+| **39** | Quản trị | `GET` | `/api/admin/sos` | Admin Token  | Danh sách tất cả SOS và vị trí hiện tại |
+| **40** | Quản trị | `GET/POST/PUT/DELETE` | `/api/admin/users`, `/api/admin/teams`, `/api/admin/rescuers` | Admin Token | Quản lý người dùng, đội cứu hộ, thành viên |
+| **41** | Hệ thống| `GET` | `/health` | Không | Kiểm tra trạng thái máy chủ và kết nối PostgreSQL |
 
 ---
 
@@ -96,7 +105,7 @@
 * **Output Lỗi thường gặp:**
   - `400 Bad Request`: `"Số điện thoại này không thuộc vai trò 'RESCUER'. Vai trò hiện tại của số điện thoại trong hệ thống là 'USER'."`
   - `400 Bad Request`: `"Số điện thoại này chưa được liên kết với Telegram Bot của hệ thống..."`
-  - `422 Unprocessable Entity`: `"Vai trò không hợp lệ. Chỉ chấp nhận 'USER' hoặc 'RESCUER'."`
+  - `422 Unprocessable Entity`: `"Vai trò không hợp lệ. Chỉ chấp nhận 'USER', 'RESCUER' hoặc 'ADMIN'."`
   - `429 Too Many Requests`: `"Vui lòng đợi 25 giây trước khi yêu cầu mã OTP mới."`
 
 ---

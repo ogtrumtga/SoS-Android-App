@@ -1,14 +1,4 @@
 <resources>
     <string name="data_pending">—</string>
     <string name="app_name">SOS Rescue</string>
-    <string name="mission_statistics_title">Thống kê cứu hộ</string>
-    <string name="mission_date_from">Từ ngày</string>
-    <string name="mission_date_to">Đến ngày</string>
-    <string name="mission_all_dates">Tất cả</string>
-    <string name="mission_statistics_summary">%1$d ca đã giải cứu · %2$s km đã di chuyển</string>
-    <string name="mission_statistics_loading">Đang tải thống kê…</string>
-    <string name="mission_statistics_error">Chưa tải được thống kê.</string>
-    <string name="mission_statistics_note">Ca hoàn thành của đội theo ngày hoàn thành (giờ Việt Nam). Quãng đường ước tính từ GPS đã lưu.</string>
-    <string name="mission_date_range_invalid">Từ ngày phải nhỏ hơn hoặc bằng đến ngày.</string>
-    <string name="mission_date_range_empty">Không có ca cứu hộ trong khoảng ngày này.</string>
 </resources>

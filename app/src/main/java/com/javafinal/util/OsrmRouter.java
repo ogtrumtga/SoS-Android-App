@@ -22,10 +22,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Truy vấn lộ trình đường giao thông thực tế từ OSRM (Open Source Routing
- * Machine - dữ liệu OpenStreetMap).
- * Sử dụng OkHttpClient độc lập để không ảnh hưởng tới interceptor kiểm thử của
- * ApiClient.
+ * Truy vấn lộ trình đường giao thông thực tế từ OSRM (Open Source Routing Machine - dữ liệu OpenStreetMap).
+ * Sử dụng OkHttpClient độc lập để không ảnh hưởng tới interceptor kiểm thử của ApiClient.
  */
 public final class OsrmRouter {
 
@@ -49,8 +47,7 @@ public final class OsrmRouter {
         private final double durationMinutes;
 
         public RouteResult(List<double[]> points, double distanceKm, double durationMinutes) {
-            this.points = points == null ? Collections.emptyList()
-                    : Collections.unmodifiableList(new ArrayList<>(points));
+            this.points = points == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(points));
             this.distanceKm = distanceKm;
             this.durationMinutes = durationMinutes;
         }
@@ -73,14 +70,12 @@ public final class OsrmRouter {
     }
 
     public static RouteResult getCached(double startLat, double startLng, double endLat, double endLng) {
-        if (!SosMapData.valid(startLat, startLng) || !SosMapData.valid(endLat, endLng))
-            return null;
+        if (!SosMapData.valid(startLat, startLng) || !SosMapData.valid(endLat, endLng)) return null;
         return CACHE.get(cacheKey(startLat, startLng, endLat, endLng));
     }
 
     /**
-     * Tìm đường đi bộ/lái xe ngắn nhất trên mạng lưới đường giao thông thực tế giữa
-     * 2 tọa độ.
+     * Tìm đường đi bộ/lái xe ngắn nhất trên mạng lưới đường giao thông thực tế giữa 2 tọa độ.
      * Nếu đã có trong bộ nhớ đệm (di chuyển < ~11m), trả kết quả ngay lập tức.
      */
     public static void fetchRoute(
@@ -88,13 +83,11 @@ public final class OsrmRouter {
             double startLng,
             double endLat,
             double endLng,
-            Consumer<RouteResult> callback) {
-        if (callback == null)
-            return;
-        if (!SosMapData.valid(startLat, startLng) || !SosMapData.valid(endLat, endLng))
-            return;
-        if (Math.abs(startLat - endLat) < 1e-6 && Math.abs(startLng - endLng) < 1e-6)
-            return;
+            Consumer<RouteResult> callback
+    ) {
+        if (callback == null) return;
+        if (!SosMapData.valid(startLat, startLng) || !SosMapData.valid(endLat, endLng)) return;
+        if (Math.abs(startLat - endLat) < 1e-6 && Math.abs(startLng - endLng) < 1e-6) return;
 
         String key = cacheKey(startLat, startLng, endLat, endLng);
         RouteResult cached = CACHE.get(key);
@@ -112,7 +105,8 @@ public final class OsrmRouter {
                 "%s%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson",
                 OSRM_BASE_URL,
                 startLng, startLat,
-                endLng, endLat);
+                endLng, endLat
+        );
 
         Request request = new Request.Builder()
                 .url(url)
@@ -130,8 +124,7 @@ public final class OsrmRouter {
             public void onResponse(Call call, Response response) {
                 IN_FLIGHT.remove(key);
                 try (Response res = response) {
-                    if (!res.isSuccessful() || res.body() == null)
-                        return;
+                    if (!res.isSuccessful() || res.body() == null) return;
                     String body = res.body().string();
                     RouteResult parsed = parseOsrmResponse(body);
                     if (parsed != null) {
@@ -146,27 +139,23 @@ public final class OsrmRouter {
     }
 
     public static RouteResult parseOsrmResponse(String json) {
-        if (json == null || json.trim().isEmpty())
-            return null;
+        if (json == null || json.trim().isEmpty()) return null;
         try {
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
             if (!root.has("code") || !"Ok".equalsIgnoreCase(root.get("code").getAsString())) {
                 return null;
             }
             JsonArray routes = root.getAsJsonArray("routes");
-            if (routes == null || routes.isEmpty())
-                return null;
+            if (routes == null || routes.isEmpty()) return null;
 
             JsonObject route = routes.get(0).getAsJsonObject();
             double distanceMeters = route.has("distance") ? route.get("distance").getAsDouble() : 0.0;
             double durationSeconds = route.has("duration") ? route.get("duration").getAsDouble() : 0.0;
 
             JsonObject geometry = route.getAsJsonObject("geometry");
-            if (geometry == null || !geometry.has("coordinates"))
-                return null;
+            if (geometry == null || !geometry.has("coordinates")) return null;
             JsonArray coordinates = geometry.getAsJsonArray("coordinates");
-            if (coordinates == null || coordinates.size() < 2)
-                return null;
+            if (coordinates == null || coordinates.size() < 2) return null;
 
             List<double[]> points = new ArrayList<>(coordinates.size());
             for (int i = 0; i < coordinates.size(); i++) {
@@ -175,12 +164,11 @@ public final class OsrmRouter {
                     double lng = pair.get(0).getAsDouble();
                     double lat = pair.get(1).getAsDouble();
                     if (SosMapData.valid(lat, lng)) {
-                        points.add(new double[] { lat, lng });
+                        points.add(new double[]{lat, lng});
                     }
                 }
             }
-            if (points.size() < 2)
-                return null;
+            if (points.size() < 2) return null;
             return new RouteResult(points, distanceMeters / 1000.0, durationSeconds / 60.0);
         } catch (Exception e) {
             return null;

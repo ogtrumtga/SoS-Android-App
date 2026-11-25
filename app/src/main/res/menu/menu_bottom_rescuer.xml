@@ -12,9 +12,13 @@
     <item
         android:id="@+id/nav_rescuer_missions"
         android:icon="@drawable/ic_navigation"
-        android:title="Các ca của tôi" />
+        android:title="Các ca" />
+    <item
+        android:id="@+id/nav_rescuer_stats"
+        android:icon="@drawable/ic_stats"
+        android:title="Thống kê" />
     <item
         android:id="@+id/nav_rescuer_team"
         android:icon="@drawable/ic_group"
-        android:title="Đội cứu hộ" />
+        android:title="Đội" />
 </menu>

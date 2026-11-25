@@ -106,6 +106,7 @@ public class RescuerHomeActivity extends ApiActivity {
             if (id == R.id.nav_rescuer_team) startActivity(new android.content.Intent(this, RescueTeamActivity.class));
             else if (id == R.id.nav_rescuer_map) startActivity(new android.content.Intent(this, RescuerMapActivity.class));
             else if (id == R.id.nav_rescuer_missions) startActivity(new android.content.Intent(this, RescuerMissionsActivity.class));
+            else if (id == R.id.nav_rescuer_stats) startActivity(new android.content.Intent(this, RescuerStatsActivity.class));
             return false;
         });
         realtime.getMessages().observe(this, message -> {

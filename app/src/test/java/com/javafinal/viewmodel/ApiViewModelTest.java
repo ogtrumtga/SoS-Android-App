@@ -131,6 +131,8 @@ public class ApiViewModelTest {
         endpoint("POST", "/api/rescuer/sos/s1/release", true, "{}", () -> rescuers.releaseSos("s1"));
         endpoint("POST", "/api/rescuer/sos/s1/complete", true, "{}", () -> rescuers.completeSos("s1"));
         endpoint("GET", "/api/rescuer/teams", true, null, rescuers::loadTeams);
+        endpoint("GET", "/api/rescuer/stats?period=DAY&date=2026-11-25", true, null,
+                () -> rescuers.loadStats("DAY", "2026-11-25", null, null));
         endpoint("POST", "/api/location/s1", true,
                 "{\"lat\":10.7,\"lng\":106.7,\"accuracy_m\":4.5,\"save_history\":true}",
                 () -> locations.updateLocation("s1", 10.7, 106.7, 4.5, true));
@@ -171,6 +173,26 @@ public class ApiViewModelTest {
         assertEquals("Cứu hộ đường thủy", customSos.getEmergencyTypeLabel());
     }
 
+    @Test public void rescuerStatsAreDecodedCorrectly() throws Exception {
+        responseBody = "{\"success\":true,\"period\":\"MONTH\",\"date\":null,\"month\":\"2026-11\","
+                + "\"summary\":{\"rescued_count\":3,\"distance_km\":5.75,\"tracked_missions\":2},"
+                + "\"overall\":{\"rescued_count\":3,\"distance_km\":5.75,\"tracked_missions\":2},"
+                + "\"by_emergency_type\":[{\"emergency_type_id\":\"e1\",\"emergency_type\":\"NGAP_LUT\","
+                + "\"description\":\"Ngập lụt, triều cường\",\"rescued_count\":2,\"distance_km\":4.25,\"tracked_missions\":2},"
+                + "{\"emergency_type_id\":\"e2\",\"emergency_type\":\"TAI_NAN\","
+                + "\"description\":\"Tai nạn giao thông\",\"rescued_count\":1,\"distance_km\":1.5,\"tracked_missions\":0}]}";
+        ApiState<SosApiModels.RescuerStatsResponse> state =
+                await(rescuers.loadStats("MONTH", null, "2026-11", null));
+        assertEquals(ApiState.Status.SUCCESS, state.getStatus());
+        SosApiModels.RescuerStatsResponse stats = state.getData();
+        assertEquals("MONTH", stats.getPeriod());
+        assertEquals(3, stats.getOverall().getRescuedCount());
+        assertEquals(5.75, stats.getOverall().getDistanceKm(), 0.001);
+        assertEquals(2, stats.getByEmergencyType().size());
+        assertEquals("Ngập lụt", stats.getByEmergencyType().get(0).getDisplayLabel());
+        assertEquals(2, stats.getByEmergencyType().get(0).getRescuedCount());
+    }
+
     @Test public void invalidInputsNeverReachNetwork() {
         invalid(auth.requestOtp("abc", "USER"));
         invalid(auth.requestOtp("0901234567", "ADMIN"));
@@ -183,6 +205,7 @@ public class ApiViewModelTest {
         invalid(sos.updateVisibility("s1", "INVALID"));
         invalid(notifications.markAsRead(""));
         invalid(rescuers.updateMissionStatus("s1", "COMPLETED"));
+        invalid(rescuers.loadStats("WEEK", null, null, null));
         invalid(locations.updateLocation("s1", 91, 106, 5, true));
         invalid(locations.updateLocation("s1", 10, 106, -1, true));
         invalid(locations.loadTrail("s1", "USER", 100));
