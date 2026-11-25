@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import com.javafinal.model.SosApiModels.*;
 import com.javafinal.model.SosRequest;
 import com.javafinal.network.ApiClient;
+import okhttp3.HttpUrl;
 
 /** API #16–22. RB05/RB06 và phân quyền được kiểm tra nguyên tử ở backend. */
 public final class RescuerViewModel extends BaseApiViewModel {
@@ -19,9 +20,17 @@ public final class RescuerViewModel extends BaseApiViewModel {
                 null, ActiveSosResponse::getSos);
     }
 
-    public LiveData<ApiState<RescuerQueueResponse>> loadMyMissions() {
-        return request("GET", "api/rescuer/missions", null, true, RescuerQueueResponse.class,
-                null, RescuerQueueResponse::getData);
+    public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions() {
+        return loadMyMissions(null, null);
+    }
+
+    public LiveData<ApiState<RescuerMissionsResponse>> loadMyMissions(String dateFrom, String dateTo) {
+        return request("GET", () -> {
+            HttpUrl.Builder url = api.url("api/rescuer/missions").newBuilder();
+            if (dateFrom != null) url.addQueryParameter("date_from", dateFrom);
+            if (dateTo != null) url.addQueryParameter("date_to", dateTo);
+            return url.build().toString();
+        }, null, true, RescuerMissionsResponse.class, null, RescuerMissionsResponse::getData);
     }
 
     public LiveData<ApiState<RescuerMapResponse>> loadMap() {

@@ -1,0 +1,579 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="3000" height="4450" viewBox="0 0 3000 4450">
+<title>SOS Rescue — Bản đồ kiến trúc front-end và luồng dữ liệu</title>
+<desc>Các file quan trọng, kế thừa UI, ViewModel, REST, WebSocket, GPS và bản đồ. Đối chiếu source ngày 24/11/2026.</desc>
+<rect x="0" y="0" width="3000" height="4450" rx="0" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<rect x="0" y="0" width="3000" height="14" rx="0" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="80" y="115" font-family="Segoe UI,sans-serif" font-size="60" font-weight="700" fill="#15253E">SOS RESCUE / FRONT-END</text>
+<text x="82" y="168" font-family="Segoe UI,sans-serif" font-size="29" font-weight="400" fill="#51647C">Bản đồ file quan trọng • hàm được gọi • API • lớp nền • đường đi dữ liệu</text>
+<rect x="2555" y="60" width="365" height="61" rx="15" fill="#E7EDF8" stroke="#E7EDF8" stroke-width="2"/>
+<text x="2580" y="99" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#2563C5">ANDROID · JAVA + XML</text>
+<rect x="80" y="204" width="2840" height="69" rx="16" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<polyline points="108,239 185,239" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="185,239 171.0,232.0 171.0,246.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="203" y="245" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Gọi hàm / gửi REST</text>
+<polyline points="607,239 684,239" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="684,239 670.0,232.0 670.0,246.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<text x="702" y="245" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Dữ liệu / kết quả về</text>
+<polyline points="1110,239 1187,239" fill="none" stroke="#8454BA" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="1187,239 1168.0,229.0 1168.0,249.0" fill="#FFFFFF" stroke="#8454BA" stroke-width="2"/>
+<text x="1205" y="245" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Lớp con → lớp cha</text>
+<polyline points="1635,239 1712,239" fill="none" stroke="#B87512" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1712,239 1698.0,232.0 1698.0,246.0" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<text x="1730" y="245" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">WebSocket</text>
+<polyline points="2055,239 2132,239" fill="none" stroke="#51647C" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="2132,239 2118.0,232.0 2118.0,246.0" fill="#51647C" stroke="#51647C" stroke-width="2"/>
+<text x="2150" y="245" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Khởi tạo / cấp phụ thuộc</text>
+<rect x="80" y="311" width="50" height="43" rx="12" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="91" y="341" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#FFFFFF">01</text>
+<text x="150" y="343" font-family="Segoe UI,sans-serif" font-size="34" font-weight="700" fill="#15253E">CÁC NHÁNH CHỨC NĂNG</text>
+<text x="150" y="379" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Đọc từng cột từ màn hình xuống ViewModel; các API ghi bên dưới được gửi qua tầng mạng ở mục 02.</text>
+<rect x="80" y="407" width="650" height="294" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="402" width="650" height="294" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="422" width="6" height="254" rx="3" fill="#8454BA" stroke="#8454BA" stroke-width="2"/>
+<text x="105" y="445" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#8454BA">KHỞI ĐỘNG / ĐĂNG NHẬP</text>
+<rect x="80" y="762" width="650" height="440" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="757" width="650" height="440" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="777" width="6" height="400" rx="3" fill="#8454BA" stroke="#8454BA" stroke-width="2"/>
+<text x="105" y="800" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#8454BA">VIEWMODEL → HÀM → API TIÊU BIỂU</text>
+<polyline points="405,696 405,757" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="405,757 412.0,743.0 398.0,743.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="415" y="707" width="99.80999999999999" height="28.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="425" y="729" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">gọi hàm</text>
+<rect x="810" y="407" width="650" height="294" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="810" y="402" width="650" height="294" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="810" y="422" width="6" height="254" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="835" y="445" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#2563C5">NGƯỜI DÂN / USER</text>
+<rect x="810" y="762" width="650" height="440" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="810" y="757" width="650" height="440" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="810" y="777" width="6" height="400" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="835" y="800" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#2563C5">VIEWMODEL → HÀM → API TIÊU BIỂU</text>
+<polyline points="1135,696 1135,757" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1135,757 1142.0,743.0 1128.0,743.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1145" y="707" width="99.80999999999999" height="28.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1155" y="729" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">gọi hàm</text>
+<rect x="1540" y="407" width="650" height="294" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1540" y="402" width="650" height="294" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1540" y="422" width="6" height="254" rx="3" fill="#117C89" stroke="#117C89" stroke-width="2"/>
+<text x="1565" y="445" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#117C89">ĐỘI CỨU HỘ / RESCUER</text>
+<rect x="1540" y="762" width="650" height="440" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1540" y="757" width="650" height="440" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1540" y="777" width="6" height="400" rx="3" fill="#117C89" stroke="#117C89" stroke-width="2"/>
+<text x="1565" y="800" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#117C89">VIEWMODEL → HÀM → API TIÊU BIỂU</text>
+<polyline points="1865,696 1865,757" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1865,757 1872.0,743.0 1858.0,743.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1875" y="707" width="99.80999999999999" height="28.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1885" y="729" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">gọi hàm</text>
+<rect x="2270" y="407" width="650" height="294" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2270" y="402" width="650" height="294" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2270" y="422" width="6" height="254" rx="3" fill="#C34C58" stroke="#C34C58" stroke-width="2"/>
+<text x="2295" y="445" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#C34C58">CHỨC NĂNG BỔ SUNG</text>
+<rect x="2270" y="762" width="650" height="440" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2270" y="757" width="650" height="440" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2270" y="777" width="6" height="400" rx="3" fill="#C34C58" stroke="#C34C58" stroke-width="2"/>
+<text x="2295" y="800" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#C34C58">VIEWMODEL → HÀM → API TIÊU BIỂU</text>
+<polyline points="2595,696 2595,757" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2595,757 2602.0,743.0 2588.0,743.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="2605" y="707" width="99.80999999999999" height="28.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="2615" y="729" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">gọi hàm</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/splash/SplashActivity.java"><title>app/src/main/java/com/javafinal/ui/splash/SplashActivity.java</title>
+<text x="105" y="484" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">SplashActivity.java</text>
+</a>
+<text x="105" y="518" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#51647C">Launcher: kiểm tra server và phiên</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/auth/LoginActivity.java"><title>app/src/main/java/com/javafinal/ui/auth/LoginActivity.java</title>
+<text x="105" y="563" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">LoginActivity.java</text>
+</a>
+<text x="105" y="597" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#51647C">Nhập số điện thoại → xác thực OTP</text>
+<text x="105" y="640" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#15253E">User từ server → goToRoleHome()</text>
+<text x="105" y="669" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#15253E">USER → Home; RESCUER → RescuerHome</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/SystemViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/SystemViewModel.java</title>
+<text x="105" y="835" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">SystemViewModel.java</text>
+</a>
+<text x="105" y="868" font-family="Consolas,sans-serif" font-size="21" font-weight="400" fill="#15253E">checkHealth() → GET /health</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/AuthViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/AuthViewModel.java</title>
+<text x="105" y="914" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">AuthViewModel.java</text>
+</a>
+<text x="105" y="947" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">requestOtp() → POST /api/auth/request-otp</text>
+<text x="105" y="981" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">verifyOtp()  → POST /api/auth/verify-otp</text>
+<text x="105" y="1015" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadMe()     → GET  /api/auth/me</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/model/AuthModels.java"><title>app/src/main/java/com/javafinal/model/AuthModels.java</title>
+<text x="105" y="1071" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#15253E">AuthModels.java + User.java</text>
+</a>
+<text x="105" y="1106" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">JWT + User → SessionStore.save()</text>
+<text x="105" y="1140" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Vai trò điều hướng lấy từ response.</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/user/HomeActivity.java"><title>app/src/main/java/com/javafinal/ui/user/HomeActivity.java</title>
+<text x="835" y="484" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">HomeActivity.java</text>
+</a>
+<text x="835" y="517" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Bản đồ cộng đồng + SOS đang hoạt động</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/user/SendSosActivity.java"><title>app/src/main/java/com/javafinal/ui/user/SendSosActivity.java</title>
+<text x="835" y="563" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">SendSosActivity.java</text>
+</a>
+<text x="835" y="596" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Form loại sự cố, mô tả, vị trí, visibility</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/user/TrackSosActivity.java"><title>app/src/main/java/com/javafinal/ui/user/TrackSosActivity.java</title>
+<text x="835" y="640" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">TrackSosActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/user/SosResultActivity.java"><title>app/src/main/java/com/javafinal/ui/user/SosResultActivity.java</title>
+<text x="835" y="678" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">SosResultActivity.java</text>
+</a>
+<text x="1175" y="639" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#51647C">Theo dõi / hủy</text>
+<text x="1175" y="677" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#51647C">Kết quả / nhật ký</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/SosViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/SosViewModel.java</title>
+<text x="835" y="835" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">SosViewModel.java</text>
+</a>
+<text x="835" y="872" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">createSos() → POST /api/sos</text>
+<text x="835" y="906" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadMyActive() → GET /api/sos/my-active</text>
+<text x="835" y="940" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadPublicMap() → GET /api/sos/public/map</text>
+<text x="835" y="974" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadDetail(id) → GET /api/sos/{id}</text>
+<text x="835" y="1025" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">updateVisibility() → PUT .../{id}/visibility</text>
+<text x="835" y="1059" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">cancelSos() → POST .../{id}/cancel</text>
+<text x="835" y="1093" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadLogs() → GET .../{id}/logs</text>
+<text x="835" y="1157" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Track/Result: theo dõi, đóng ca, xem nhật ký</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/RescuerHomeActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/RescuerHomeActivity.java</title>
+<text x="1565" y="482" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">RescuerHomeActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/SosDetailActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/SosDetailActivity.java</title>
+<text x="1565" y="520" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">SosDetailActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/RealtimeTrackingActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/RealtimeTrackingActivity.java</title>
+<text x="1565" y="558" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">RealtimeTrackingActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/ConfirmCompleteActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/ConfirmCompleteActivity.java</title>
+<text x="1565" y="596" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">ConfirmCompleteActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/RescuerMapActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/RescuerMapActivity.java</title>
+<text x="1565" y="634" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">RescuerMapActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/RescuerMissionsActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/RescuerMissionsActivity.java</title>
+<text x="1565" y="672" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">RescuerMissionsActivity.java</text>
+</a>
+<text x="1973" y="481" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">1 · Hàng đợi</text>
+<text x="1973" y="519" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">2 · Xem / nhận ca</text>
+<text x="1973" y="557" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">3 · GPS + tiến trình</text>
+<text x="1973" y="595" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">4 · Hoàn thành</text>
+<text x="1973" y="633" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">↳ Bản đồ cứu hộ</text>
+<text x="1973" y="671" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">↳ Ca / lịch sử</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/RescuerViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/RescuerViewModel.java</title>
+<text x="1565" y="835" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">RescuerViewModel.java</text>
+</a>
+<text x="1565" y="871" font-family="Consolas,sans-serif" font-size="21" font-weight="400" fill="#15253E">loadQueue / loadMyActive / loadMyMissions</text>
+<text x="1565" y="907" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">GET /api/rescuer/{queue,my-active,missions}</text>
+<text x="1565" y="945" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">loadMap() → GET /api/rescuer/map</text>
+<text x="1565" y="991" font-family="Consolas,sans-serif" font-size="21" font-weight="400" fill="#15253E">acceptSos / updateMissionStatus /</text>
+<text x="1565" y="1024" font-family="Consolas,sans-serif" font-size="21" font-weight="400" fill="#15253E">releaseSos / completeSos</text>
+<text x="1565" y="1066" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">POST /api/rescuer/sos/{id}/</text>
+<text x="1565" y="1098" font-family="Consolas,sans-serif" font-size="20" font-weight="400" fill="#15253E">     {accept,status,release,complete}</text>
+<text x="1565" y="1147" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">SosViewModel: đọc chi tiết / nhật ký ca</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/SosRequestAdapter.java"><title>app/src/main/java/com/javafinal/ui/rescuer/SosRequestAdapter.java</title>
+<text x="1565" y="1182" font-family="Segoe UI,sans-serif" font-size="19" font-weight="400" fill="#51647C">SosRequestAdapter.java: click → callback về Activity</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/notification/NotificationActivity.java"><title>app/src/main/java/com/javafinal/ui/notification/NotificationActivity.java</title>
+<text x="2295" y="483" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">NotificationActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/notification/NotificationAdapter.java"><title>app/src/main/java/com/javafinal/ui/notification/NotificationAdapter.java</title>
+<text x="2295" y="516" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#51647C">NotificationAdapter.java: danh sách, đã đọc</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/RescueTeamActivity.java"><title>app/src/main/java/com/javafinal/ui/rescuer/RescueTeamActivity.java</title>
+<text x="2295" y="562" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">RescueTeamActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/rescuer/TeamMemberAdapter.java"><title>app/src/main/java/com/javafinal/ui/rescuer/TeamMemberAdapter.java</title>
+<text x="2295" y="595" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#51647C">TeamMemberAdapter.java: thành viên / vai trò</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/NavigationHelper.java"><title>app/src/main/java/com/javafinal/util/NavigationHelper.java</title>
+<text x="2295" y="640" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">NavigationHelper.java</text>
+</a>
+<text x="2295" y="674" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Hồ sơ, đổi tên, đăng xuất, gọi điện / SMS</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/NotificationViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/NotificationViewModel.java</title>
+<text x="2295" y="834" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">NotificationViewModel.java</text>
+</a>
+<text x="2295" y="865" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">loadMyNotifications() / markAsRead()</text>
+<text x="2295" y="893" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">GET /api/sos/notifications/my</text>
+<text x="2295" y="921" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">PUT /api/sos/notifications/{id}/read</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/TeamViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/TeamViewModel.java</title>
+<text x="2295" y="967" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">TeamViewModel.java</text>
+</a>
+<text x="2295" y="997" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">loadMyTeams() → GET .../teams/mine</text>
+<text x="2295" y="1025" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">addMember / updateMember / deleteMember</text>
+<text x="2295" y="1053" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">POST / PUT / DELETE .../teams/{id}/members</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/UserViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/UserViewModel.java</title>
+<text x="2295" y="1096" font-family="Segoe UI,sans-serif" font-size="24" font-weight="700" fill="#15253E">UserViewModel.java</text>
+</a>
+<text x="2295" y="1127" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">loadProfile() → GET /api/users/profile</text>
+<text x="2295" y="1155" font-family="Consolas,sans-serif" font-size="19" font-weight="400" fill="#15253E">updateFullName() → PUT /api/users/full-name</text>
+<text x="2295" y="1184" font-family="Segoe UI,sans-serif" font-size="18" font-weight="400" fill="#51647C">.../teams = /api/rescuer/teams; sửa/xóa có /{memberId}</text>
+<polyline points="405,1197 405,1243" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="1135,1197 1135,1243" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="1865,1197 1865,1243" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="2595,1197 2595,1243" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="405,1243 2595,1243" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="1130,1243 1130,1426" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1130,1426 1137.0,1412.0 1123.0,1412.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1270" y="1218" width="513.06" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1280" y="1243" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#2563C5">Các ViewModel REST dùng chung request()</text>
+<rect x="80" y="1302" width="50" height="43" rx="12" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="91" y="1332" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#FFFFFF">02</text>
+<text x="150" y="1334" font-family="Segoe UI,sans-serif" font-size="34" font-weight="700" fill="#15253E">LUỒNG GỌI REST VÀ DỮ LIỆU TRẢ VỀ</text>
+<text x="150" y="1370" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Hàng trên: lệnh đi tới server. Hàng dưới: JSON trở về, được parse rồi phát trạng thái cho UI.</text>
+<rect x="80" y="1431" width="620" height="205" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="1426" width="620" height="205" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="1446" width="6" height="165" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="80" y="1748" width="620" height="202" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="1743" width="620" height="202" rx="20" fill="#F9FEFC" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="1763" width="6" height="162" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="820" y="1431" width="620" height="205" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="820" y="1426" width="620" height="205" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="820" y="1446" width="6" height="165" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="820" y="1748" width="620" height="202" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="820" y="1743" width="620" height="202" rx="20" fill="#F9FEFC" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="820" y="1763" width="6" height="162" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="1560" y="1431" width="620" height="205" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1560" y="1426" width="620" height="205" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1560" y="1446" width="6" height="165" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1560" y="1748" width="620" height="202" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1560" y="1743" width="620" height="202" rx="20" fill="#F9FEFC" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1560" y="1763" width="6" height="162" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2300" y="1431" width="620" height="205" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2300" y="1426" width="620" height="205" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2300" y="1446" width="6" height="165" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="2300" y="1748" width="620" height="202" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2300" y="1743" width="620" height="202" rx="20" fill="#F9FEFC" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2300" y="1763" width="6" height="162" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<text x="105" y="1476" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">Activity → ViewModel nghiệp vụ</text>
+<text x="105" y="1518" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">onClick → execute(key, action)</text>
+<text x="105" y="1554" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Ví dụ: SosViewModel.createSos(dto)</text>
+<text x="105" y="1590" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Activity đăng ký bind() để nhận kết quả.</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/BaseApiViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/BaseApiViewModel.java</title>
+<text x="845" y="1476" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">BaseApiViewModel.java</text>
+</a>
+<text x="845" y="1518" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">request(...): validate → LOADING</text>
+<text x="845" y="1554" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Theo dõi Call; bảo vệ phiên đã thay đổi.</text>
+<text x="845" y="1590" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">onCleared() → cancelRequests()</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/network/ApiClient.java"><title>app/src/main/java/com/javafinal/network/ApiClient.java</title>
+<text x="1585" y="1476" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">ApiClient.java</text>
+</a>
+<text x="1585" y="1518" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">newCall() → enqueue() bằng OkHttp</text>
+<text x="1585" y="1554" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Gson: Java object → JSON request</text>
+<text x="1585" y="1590" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Authorization: Bearer JWT nếu auth=true</text>
+<text x="2325" y="1476" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#2563C5">BACKEND REST API</text>
+<text x="2325" y="1518" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Nhận HTTP + JSON; xác thực / phân quyền.</text>
+<text x="2325" y="1554" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Xử lý nghiệp vụ → trả response JSON.</text>
+<text x="2325" y="1590" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Backend nằm ngoài repository này.</text>
+<polyline points="700,1535 820,1535" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="820,1535 806.0,1528.0 806.0,1542.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<polyline points="1440,1535 1560,1535" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1560,1535 1546.0,1528.0 1546.0,1542.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<polyline points="2180,1535 2300,1535" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2300,1535 2286.0,1528.0 2286.0,1542.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="706" y="1492" width="95.82" height="27.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="716" y="1513" font-family="Segoe UI,sans-serif" font-size="18" font-weight="400" fill="#51647C">request</text>
+<rect x="1443" y="1492" width="65.03999999999999" height="27.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1453" y="1513" font-family="Segoe UI,sans-serif" font-size="18" font-weight="400" fill="#51647C">Call</text>
+<rect x="2170" y="1492" width="65.03999999999999" height="27.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="2180" y="1513" font-family="Segoe UI,sans-serif" font-size="18" font-weight="400" fill="#51647C">HTTP</text>
+<polyline points="2610,1631 2610,1743" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2610,1743 2617.0,1729.0 2603.0,1729.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2630" y="1663" width="179.60999999999999" height="31.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="2640" y="1687" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#16816A">JSON response</text>
+<text x="2325" y="1792" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#16816A">ApiClient / Gson → DTO</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/model/SosApiModels.java"><title>app/src/main/java/com/javafinal/model/SosApiModels.java</title>
+<text x="2325" y="1833" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#15253E">SosApiModels.java</text>
+</a>
+<text x="2325" y="1869" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">AuthModels.java / TeamApiModels.java</text>
+<text x="2325" y="1903" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">SosRequest, User, LocationCurrent...</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/ApiState.java"><title>app/src/main/java/com/javafinal/viewmodel/ApiState.java</title>
+<text x="1585" y="1792" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#16816A">ApiState.java</text>
+</a>
+<text x="1585" y="1833" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">BaseApiViewModel nhận callback:</text>
+<text x="1585" y="1869" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">SUCCESS(data) hoặc ERROR(ApiError)</text>
+<text x="1585" y="1905" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Callback được đưa về main thread.</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/ScreenRequests.java"><title>app/src/main/java/com/javafinal/ui/ScreenRequests.java</title>
+<text x="845" y="1792" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#16816A">ScreenRequests.java</text>
+</a>
+<text x="845" y="1833" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Giữ LiveData&lt;ApiState&lt;T&gt;&gt; theo key.</text>
+<text x="845" y="1869" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">ApiActivity.attach() → observe(this,...)</text>
+<text x="845" y="1905" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">consume(): xử lý mỗi kết quả một lần.</text>
+<text x="105" y="1792" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#16816A">Activity / Adapter / XML</text>
+<text x="105" y="1833" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">LOADING: khóa nút / hiện tiến trình</text>
+<text x="105" y="1869" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">SUCCESS: render / điều hướng theo data</text>
+<text x="105" y="1905" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">ERROR: showApiError() / nút thử lại</text>
+<polyline points="2300,1841 2180,1841" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2180,1841 2194.0,1848.0 2194.0,1834.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<polyline points="1560,1841 1440,1841" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1440,1841 1454.0,1848.0 1454.0,1834.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<polyline points="820,1841 700,1841" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="700,1841 714.0,1848.0 714.0,1834.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<polyline points="390,1743 390,1631" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="390,1631 383.0,1645.0 397.0,1645.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="94" y="1668" width="227.48999999999998" height="31.5" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="104" y="1692" font-family="Segoe UI,sans-serif" font-size="21" font-weight="400" fill="#16816A">cập nhật màn hình</text>
+<rect x="80" y="2006" width="50" height="43" rx="12" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="91" y="2036" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#FFFFFF">03</text>
+<text x="150" y="2038" font-family="Segoe UI,sans-serif" font-size="34" font-weight="700" fill="#15253E">LỚP NỀN VÀ CÁC THÀNH PHẦN DÙNG CHUNG</text>
+<rect x="80" y="2079" width="1395" height="539" rx="22" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<text x="106" y="2123" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#8454BA">KẾ THỪA UI · mũi tên hướng về lớp cha</text>
+<rect x="110" y="2160" width="535" height="87" rx="15" fill="#F3EEFB" stroke="#DCD0ED" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/ApiActivity.java"><title>app/src/main/java/com/javafinal/ui/ApiActivity.java</title>
+<text x="133" y="2209" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#8454BA">ApiActivity.java</text>
+</a>
+<rect x="110" y="2334" width="535" height="87" rx="15" fill="#F3EEFB" stroke="#DCD0ED" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/MapApiActivity.java"><title>app/src/main/java/com/javafinal/ui/MapApiActivity.java</title>
+<text x="133" y="2383" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#8454BA">MapApiActivity.java</text>
+</a>
+<rect x="110" y="2508" width="535" height="87" rx="15" fill="#F3EEFB" stroke="#DCD0ED" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/LiveSosActivity.java"><title>app/src/main/java/com/javafinal/ui/LiveSosActivity.java</title>
+<text x="133" y="2557" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#8454BA">LiveSosActivity.java</text>
+</a>
+<polyline points="375,2334 375,2247" fill="none" stroke="#8454BA" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="375,2247 365.0,2266.0 385.0,2266.0" fill="#FFFFFF" stroke="#8454BA" stroke-width="2"/>
+<polyline points="375,2508 375,2421" fill="none" stroke="#8454BA" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="375,2421 365.0,2440.0 385.0,2440.0" fill="#FFFFFF" stroke="#8454BA" stroke-width="2"/>
+<text x="405" y="2291" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#8454BA">extends</text>
+<text x="405" y="2465" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#8454BA">extends</text>
+<text x="685" y="2188" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">setupScreen / vm / bind / execute / xử lý 401</text>
+<text x="685" y="2222" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Base cho Splash, Login, Notification,</text>
+<text x="685" y="2256" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">RescuerHome, RescueTeam, Missions...</text>
+<text x="685" y="2362" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Thêm MapView, style và vòng đời bản đồ.</text>
+<text x="685" y="2396" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">HomeActivity, SendSosActivity,</text>
+<text x="685" y="2430" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">SosDetailActivity, RescuerMapActivity.</text>
+<text x="685" y="2533" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Thêm theo dõi SOS, REST, WS, GPS.</text>
+<text x="685" y="2565" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">TrackSosActivity + RealtimeTrackingActivity</text>
+<text x="685" y="2597" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">kế thừa trực tiếp lớp này.</text>
+<rect x="1525" y="2079" width="1395" height="539" rx="22" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<text x="1551" y="2123" font-family="Segoe UI,sans-serif" font-size="23" font-weight="700" fill="#51647C">KHỞI TẠO / PHIÊN / BASE VIEWMODEL</text>
+<rect x="1555" y="2158" width="1335" height="132" rx="15" fill="#F0F5FC" stroke="#E1E8F1" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/ApiViewModelFactory.java"><title>app/src/main/java/com/javafinal/viewmodel/ApiViewModelFactory.java</title>
+<text x="1580" y="2203" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">ApiViewModelFactory.java</text>
+</a>
+<a xlink:href="../../app/build.gradle.kts"><title>app/build.gradle.kts</title>
+<text x="1580" y="2245" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">app/build.gradle.kts → BuildConfig.API_BASE_URL → getDefault(context)</text>
+</a>
+<polyline points="2000,2290 2000,2345" fill="none" stroke="#51647C" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="2000,2345 2007.0,2331.0 1993.0,2331.0" fill="#51647C" stroke="#51647C" stroke-width="2"/>
+<polyline points="2600,2290 2600,2345" fill="none" stroke="#51647C" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="2600,2345 2607.0,2331.0 2593.0,2331.0" fill="#51647C" stroke="#51647C" stroke-width="2"/>
+<rect x="1555" y="2345" width="675" height="125" rx="15" fill="#F0F5FC" stroke="#E1E8F1" stroke-width="2"/>
+<text x="1580" y="2383" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Tạo ViewModel + ApiClient dùng chung</text>
+<text x="1580" y="2416" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">BaseApiViewModel ← các VM nghiệp vụ</text>
+<text x="1580" y="2449" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">RealtimeViewModel cũng extends Base.</text>
+<rect x="2280" y="2345" width="610" height="125" rx="15" fill="#F0F5FC" stroke="#E1E8F1" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/network/SessionStore.java"><title>app/src/main/java/com/javafinal/network/SessionStore.java</title>
+<text x="2305" y="2383" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">SessionStore.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/network/PreferencesSessionStore.java"><title>app/src/main/java/com/javafinal/network/PreferencesSessionStore.java</title>
+<text x="2305" y="2419" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">PreferencesSessionStore.java</text>
+</a>
+<text x="2305" y="2453" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">JWT + User ↔ SharedPreferences</text>
+<polyline points="2280,2415 2230,2415" fill="none" stroke="#51647C" stroke-width="3" stroke-linejoin="round" stroke-dasharray="10 8"/>
+<polygon points="2230,2415 2244.0,2422.0 2244.0,2408.0" fill="#51647C" stroke="#51647C" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/InputValidator.java"><title>app/src/main/java/com/javafinal/viewmodel/InputValidator.java</title>
+<text x="1555" y="2523" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">InputValidator.java: kiểm tra đầu vào    •    SosRules.java: điều kiện thao tác SOS</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/EmergencyTypeViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/EmergencyTypeViewModel.java</title>
+<text x="1555" y="2568" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">EmergencyTypeViewModel.java → loadAll() → GET /api/emergency-types</text>
+</a>
+<rect x="80" y="2682" width="50" height="43" rx="12" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="91" y="2712" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#FFFFFF">04</text>
+<text x="150" y="2714" font-family="Segoe UI,sans-serif" font-size="34" font-weight="700" fill="#15253E">GPS, WEBSOCKET VÀ BẢN ĐỒ</text>
+<text x="150" y="2750" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">LiveSosActivity phối hợp các nhánh này cho TrackSosActivity và RealtimeTrackingActivity.</text>
+<text x="80" y="2805" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#2563C5">A · GỬI VỊ TRÍ THIẾT BỊ</text>
+<rect x="80" y="2838" width="880" height="178" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="2833" width="880" height="178" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="2853" width="6" height="138" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="80" y="3110" width="880" height="210" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="3105" width="880" height="210" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="3125" width="6" height="170" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="80" y="3416" width="880" height="188" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="3411" width="880" height="188" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="3431" width="6" height="148" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="1060" y="2805" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#B87512">B · SERVER ĐẨY SỰ KIỆN</text>
+<rect x="1060" y="2838" width="880" height="178" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1060" y="2833" width="880" height="178" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1060" y="2853" width="6" height="138" rx="3" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<rect x="1060" y="3110" width="880" height="210" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1060" y="3105" width="880" height="210" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1060" y="3125" width="6" height="170" rx="3" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<rect x="1060" y="3416" width="880" height="188" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1060" y="3411" width="880" height="188" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1060" y="3431" width="6" height="148" rx="3" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<text x="2040" y="2805" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#117C89">C · DỮ LIỆU → BẢN ĐỒ</text>
+<rect x="2040" y="2838" width="880" height="178" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2040" y="2833" width="880" height="178" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2040" y="2853" width="6" height="138" rx="3" fill="#117C89" stroke="#117C89" stroke-width="2"/>
+<rect x="2040" y="3110" width="880" height="210" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2040" y="3105" width="880" height="210" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2040" y="3125" width="6" height="170" rx="3" fill="#117C89" stroke="#117C89" stroke-width="2"/>
+<rect x="2040" y="3416" width="880" height="188" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2040" y="3411" width="880" height="188" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2040" y="3431" width="6" height="148" rx="3" fill="#117C89" stroke="#117C89" stroke-width="2"/>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/DeviceLocation.java"><title>app/src/main/java/com/javafinal/util/DeviceLocation.java</title>
+<text x="105" y="2881" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">DeviceLocation.java</text>
+</a>
+<text x="105" y="2924" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">FusedLocationProvider → Location(lat,lng,accuracy)</text>
+<text x="105" y="2959" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">request() xin quyền; callback nhận tọa độ thật.</text>
+<text x="105" y="2994" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">Lifecycle onStop() ngừng cập nhật GPS.</text>
+<polyline points="520,3011 520,3105" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="520,3105 527.0,3091.0 513.0,3091.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="537" y="3037" width="337.5" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="547" y="3062" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#2563C5">onLocation → publishGps()</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/ui/LiveSosActivity.java"><title>app/src/main/java/com/javafinal/ui/LiveSosActivity.java</title>
+<text x="105" y="3154" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">LiveSosActivity.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/LocationViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/LocationViewModel.java</title>
+<text x="105" y="3197" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">LocationViewModel.java</text>
+</a>
+<text x="105" y="3241" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">canPublishGps() → updateLocation(sosId,...)</text>
+<text x="105" y="3274" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Chặn lần gửi cách nhau dưới 6 giây.</text>
+<text x="105" y="3307" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">REST đi qua BaseApiViewModel → ApiClient.</text>
+<polyline points="520,3315 520,3411" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="520,3411 527.0,3397.0 513.0,3397.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="537" y="3347" width="161.94" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="547" y="3372" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#2563C5">JSON tọa độ</text>
+<text x="105" y="3460" font-family="Consolas,sans-serif" font-size="28" font-weight="700" fill="#2563C5">POST /api/location/{id}</text>
+<text x="105" y="3503" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">lat, lng, accuracy_m, save_history</text>
+<text x="105" y="3537" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Đọc lại: GET .../{id}/current và .../{id}/trail</text>
+<text x="105" y="3571" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Model: LocationCurrent.java / LocationHistory.java</text>
+<text x="1085" y="2881" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#B87512">BACKEND · WS /ws?token={JWT}</text>
+<text x="1085" y="2924" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">Client: SUBSCRIBE_SOS(sos_id), PING</text>
+<text x="1085" y="2959" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">Server: LOCATION_BROADCAST, STATUS_CHANGED...</text>
+<text x="1085" y="2994" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">Dùng cùng base URL với REST.</text>
+<polyline points="1450,3011 1450,3105" fill="none" stroke="#B87512" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1450,3105 1457.0,3091.0 1443.0,3091.0" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<polyline points="1550,3105 1550,3011" fill="none" stroke="#B87512" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1550,3011 1543.0,3025.0 1557.0,3025.0" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<rect x="1570" y="3037" width="136.85999999999999" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1580" y="3062" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#B87512">hai chiều</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/viewmodel/RealtimeViewModel.java"><title>app/src/main/java/com/javafinal/viewmodel/RealtimeViewModel.java</title>
+<text x="1085" y="3154" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#B87512">RealtimeViewModel.java</text>
+</a>
+<text x="1085" y="3195" font-family="Consolas,sans-serif" font-size="24" font-weight="400" fill="#15253E">connect() / subscribeSos() / getMessages()</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/network/RealtimeProtocol.java"><title>app/src/main/java/com/javafinal/network/RealtimeProtocol.java</title>
+<text x="1085" y="3239" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#15253E">RealtimeProtocol.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/model/WebSocketMessage.java"><title>app/src/main/java/com/javafinal/model/WebSocketMessage.java</title>
+<text x="1085" y="3274" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">decode(): type → event → WebSocketMessage.java</text>
+</a>
+<text x="1085" y="3305" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">OkHttp WebSocket dùng api.getHttp(); tự reconnect.</text>
+<polyline points="1500,3315 1500,3411" fill="none" stroke="#B87512" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1500,3411 1507.0,3397.0 1493.0,3397.0" fill="#B87512" stroke="#B87512" stroke-width="2"/>
+<rect x="1520" y="3347" width="350.03999999999996" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1530" y="3372" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#B87512">LiveData&lt;WebSocketMessage&gt;</text>
+<text x="1085" y="3460" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#B87512">Activity observe() sự kiện</text>
+<text x="1085" y="3503" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">LOCATION_BROADCAST → sửa currentSos → render</text>
+<text x="1085" y="3537" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Đổi trạng thái → refreshSos() bằng REST</text>
+<text x="1085" y="3571" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">COMPLETED / CANCELLED → endTracking()</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/OsrmRouter.java"><title>app/src/main/java/com/javafinal/util/OsrmRouter.java</title>
+<text x="2065" y="2881" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">OsrmRouter.java</text>
+</a>
+<text x="2065" y="2924" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">fetchRoute() → router.project-osrm.org</text>
+<text x="2065" y="2959" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">GET /route/v1/driving/{lng,lat};{lng,lat}</text>
+<text x="2065" y="2994" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">HTTP client riêng + cache tuyến đường.</text>
+<polyline points="2480,3011 2480,3105" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2480,3105 2487.0,3091.0 2473.0,3091.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2500" y="3037" width="387.65999999999997" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="2510" y="3062" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#16816A">RouteResult: points, km, phút</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/model/SosRequest.java"><title>app/src/main/java/com/javafinal/model/SosRequest.java</title>
+<text x="2065" y="3154" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">SosRequest.java</text>
+</a>
+<text x="2065" y="3195" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">currentSos.locations: victim + rescuer</text>
+<text x="2065" y="3229" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">LocationHistory: trail; setOsrmRoute(): tuyến</text>
+<text x="2065" y="3263" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">locationVm.loadCurrent() / loadTrail() → vị trí</text>
+<text x="2065" y="3297" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#15253E">Cập nhật model → renderLiveMap()</text>
+<polyline points="2480,3315 2480,3411" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2480,3411 2487.0,3397.0 2473.0,3397.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2500" y="3347" width="299.88" height="33.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="2510" y="3372" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#16816A">tọa độ + trail + route</text>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/SosMapData.java"><title>app/src/main/java/com/javafinal/util/SosMapData.java</title>
+<text x="2065" y="3460" font-family="Segoe UI,sans-serif" font-size="28" font-weight="700" fill="#15253E">SosMapData.java</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/MapHelper.java"><title>app/src/main/java/com/javafinal/util/MapHelper.java</title>
+<text x="2065" y="3503" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">MapHelper.java</text>
+</a>
+<text x="2065" y="3543" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">draw / drawPublic / drawRescuer → MapLibre</text>
+<text x="2065" y="3576" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#15253E">Marker, vùng công khai, polyline, camera, style</text>
+<polyline points="960,3505 1010,3505 1010,2910 1060,2910" fill="none" stroke="#2563C5" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="1060,2910 1046.0,2903.0 1046.0,2917.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<polyline points="1940,3505 2040,3505" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2040,3505 2026.0,3498.0 2026.0,3512.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="1940" y="3461" width="85.56" height="27.0" rx="6" fill="#F3F6FB" stroke="#F3F6FB" stroke-width="2"/>
+<text x="1950" y="3482" font-family="Segoe UI,sans-serif" font-size="18" font-weight="400" fill="#16816A">vẽ lại</text>
+<text x="80" y="3656" font-family="Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#15253E">Đường vị trí: GPS → POST REST → backend → LOCATION_BROADCAST → currentSos → vẽ lại bản đồ.</text>
+<text x="80" y="3700" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#51647C">LiveSos: poll REST mỗi 15 s; WS ping mỗi 25 s; rời màn hình / đóng ca thì dừng các tác vụ theo lifecycle.</text>
+<rect x="80" y="3762" width="50" height="43" rx="12" fill="#15253E" stroke="#15253E" stroke-width="2"/>
+<text x="91" y="3792" font-family="Segoe UI,sans-serif" font-size="27" font-weight="700" fill="#FFFFFF">05</text>
+<text x="150" y="3794" font-family="Segoe UI,sans-serif" font-size="34" font-weight="700" fill="#15253E">LẦN THEO MỘT THAO TÁC: NGƯỜI DÂN BẤM “GỬI SOS”</text>
+<rect x="80" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="80" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="80" y="3863" width="6" height="228" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="103" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#2563C5">01  ĐỌC FORM</text>
+<polyline points="520,3978 560,3978" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="560,3978 546.0,3971.0 546.0,3985.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="560" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="560" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="560" y="3863" width="6" height="228" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="583" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#2563C5">02  ĐÓNG GÓI DỮ LIỆU</text>
+<polyline points="1000,3978 1040,3978" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1040,3978 1026.0,3971.0 1026.0,3985.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1040" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1040" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1040" y="3863" width="6" height="228" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="1063" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#2563C5">03  GỌI NGHIỆP VỤ</text>
+<polyline points="1480,3978 1520,3978" fill="none" stroke="#2563C5" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1520,3978 1506.0,3971.0 1506.0,3985.0" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<rect x="1520" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="1520" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="1520" y="3863" width="6" height="228" rx="3" fill="#2563C5" stroke="#2563C5" stroke-width="2"/>
+<text x="1543" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#2563C5">04  GỬI HTTP</text>
+<polyline points="1960,3978 2000,3978" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2000,3978 1986.0,3971.0 1986.0,3985.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2000" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2000" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2000" y="3863" width="6" height="228" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<text x="2023" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#16816A">05  NHẬN RESPONSE</text>
+<polyline points="2440,3978 2480,3978" fill="none" stroke="#16816A" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="2480,3978 2466.0,3971.0 2466.0,3985.0" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<rect x="2480" y="3848" width="440" height="268" rx="20" fill="#E5EBF4" stroke="#E5EBF4" stroke-width="2"/>
+<rect x="2480" y="3843" width="440" height="268" rx="20" fill="#FFFFFF" stroke="#E1E8F1" stroke-width="2"/>
+<rect x="2480" y="3863" width="6" height="228" rx="3" fill="#16816A" stroke="#16816A" stroke-width="2"/>
+<text x="2503" y="3885" font-family="Segoe UI,sans-serif" font-size="22" font-weight="700" fill="#16816A">06  MỞ MÀN THEO DÕI</text>
+<text x="103" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">SendSosActivity.java</text>
+<text x="103" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">sendSos()</text>
+<text x="103" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">Loại sự cố + mô tả</text>
+<text x="103" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">PUBLIC / PRIVATE</text>
+<text x="103" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">GPS / điểm chọn trên map</text>
+<text x="583" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">SosApiModels.java</text>
+<text x="583" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">CreateSosRequest</text>
+<text x="583" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">emergency_type_id / type</text>
+<text x="583" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">description, visibility</text>
+<text x="583" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">initial_lat, initial_lng</text>
+<text x="1063" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">SosViewModel.java</text>
+<text x="1063" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">createSos(request)</text>
+<text x="1063" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">request(POST, api/sos,...)</text>
+<text x="1063" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">InputValidator kiểm tra</text>
+<text x="1063" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">ApiState = LOADING</text>
+<text x="1543" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">ApiClient.java</text>
+<text x="1543" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">newCall() → enqueue()</text>
+<text x="1543" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">POST /api/sos</text>
+<text x="1543" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">Bearer JWT + JSON</text>
+<text x="1543" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">OkHttp chạy bất đồng bộ</text>
+<text x="2023" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">Gson → SosSingleResponse</text>
+<text x="2023" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">response.getSos().getId()</text>
+<text x="2023" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">ApiState = SUCCESS(data)</text>
+<text x="2023" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">LiveData → bind(&quot;create&quot;)</text>
+<text x="2023" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">Callback trên main thread</text>
+<text x="2503" y="3934" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">openSos(..., id)</text>
+<text x="2503" y="3968" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">→ TrackSosActivity.java</text>
+<text x="2503" y="4002" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">Intent extra: SOS_ID</text>
+<text x="2503" y="4036" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">initLiveSos() → loadDetail</text>
+<text x="2503" y="4070" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#15253E">REST + WS + GPS ở mục 04</text>
+<rect x="80" y="4150" width="2840" height="95" rx="17" fill="#FFF5EF" stroke="#F0D7CA" stroke-width="2"/>
+<text x="105" y="4193" font-family="Segoe UI,sans-serif" font-size="25" font-weight="700" fill="#91492E">Nhánh lỗi: ERROR → showApiError(); HTTP 409 → loadMyActive(); HTTP 401 → xóa phiên và về Login.</text>
+<text x="105" y="4230" font-family="Segoe UI,sans-serif" font-size="24" font-weight="400" fill="#91492E">SendSosActivity chỉ mở TrackSosActivity khi đã có SOS ID; trạng thái nghiệp vụ chờ server xác nhận.</text>
+<a xlink:href="../../app/src/main/res/layout/activity_send_sos.xml"><title>app/src/main/res/layout/activity_send_sos.xml</title>
+<text x="80" y="4304" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">XML chính: activity_send_sos.xml ↔ SendSosActivity • activity_realtime_tracking.xml ↔ RealtimeTrackingActivity • item_sos_request.xml ↔ SosRequestAdapter</text>
+</a>
+<a xlink:href="../../app/src/main/java/com/javafinal/util/ApiDisplay.java"><title>app/src/main/java/com/javafinal/util/ApiDisplay.java</title>
+<text x="80" y="4343" font-family="Segoe UI,sans-serif" font-size="23" font-weight="400" fill="#51647C">Hiển thị dùng chung: values/themes.xml, styles.xml, colors.xml • ApiDisplay.java định dạng nhãn / thời gian.</text>
+</a>
+<text x="80" y="4380" font-family="Segoe UI,sans-serif" font-size="22" font-weight="400" fill="#51647C">Phạm vi: chọn file đại diện từ app/src/main; MVVM thực dụng, ViewModel gọi ApiClient, chưa có Repository / UseCase riêng.</text>
+<rect x="80" y="4390" width="2840" height="2" rx="0" fill="#D7DFEB" stroke="#D7DFEB" stroke-width="2"/>
+<text x="80" y="4428" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#51647C">SOURCE: app/src/main/java/com/javafinal/  ·  res/  ·  AndroidManifest.xml  ·  app/build.gradle.kts</text>
+<text x="2465" y="4428" font-family="Segoe UI,sans-serif" font-size="20" font-weight="400" fill="#51647C">Đối chiếu source: 24/11/2026</text>
+</svg>

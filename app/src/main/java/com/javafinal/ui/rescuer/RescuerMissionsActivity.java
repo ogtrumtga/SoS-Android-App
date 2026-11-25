@@ -1,5 +1,6 @@
 package com.javafinal.ui.rescuer;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -35,8 +37,11 @@ import com.javafinal.viewmodel.RescuerViewModel;
 import com.javafinal.viewmodel.SosViewModel;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /** Màn hình danh sách tất cả các ca cứu hộ của rescuer (ca hiện tại nổi bật + lịch sử kèm nhật ký). */
 public class RescuerMissionsActivity extends ApiActivity {
@@ -49,6 +54,12 @@ public class RescuerMissionsActivity extends ApiActivity {
     private List<SosRequest> missions = Collections.emptyList();
     private SosRequest activeMission;
     private boolean loadingMissions;
+    private String dateFrom;
+    private String dateTo;
+    private MaterialButton dateFromButton;
+    private MaterialButton dateToButton;
+    private MaterialButton allDatesButton;
+    private TextView statisticsText;
     private BottomSheetDialog logsDialog;
     private LinearLayout logsBody;
     private String selectedLogSosId;
@@ -73,6 +84,24 @@ public class RescuerMissionsActivity extends ApiActivity {
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         toolbar.setOnMenuItemClickListener(item -> { refresh(); return true; });
 
+        if (state != null) {
+            dateFrom = state.getString("mission_date_from");
+            dateTo = state.getString("mission_date_to");
+        }
+        dateFromButton = findViewById(R.id.btnMissionDateFrom);
+        dateToButton = findViewById(R.id.btnMissionDateTo);
+        allDatesButton = findViewById(R.id.btnMissionAllDates);
+        statisticsText = findViewById(R.id.tvMissionStatistics);
+        updateDateButtons();
+        dateFromButton.setOnClickListener(v -> pickDate(true));
+        dateToButton.setOnClickListener(v -> pickDate(false));
+        allDatesButton.setOnClickListener(v -> {
+            dateFrom = null;
+            dateTo = null;
+            updateDateButtons();
+            loadMissions();
+        });
+
         adapter = new RescuerMissionAdapter((mission, isCurrent) -> {
             if (mission == null || mission.getId() == null) return;
             if (isCurrent) {
@@ -90,13 +119,26 @@ public class RescuerMissionsActivity extends ApiActivity {
             activeMission = response.isActive() ? response.getSos() : null;
             render();
         }, error -> { }, null);
-        bind("missions", (SosApiModels.RescuerQueueResponse response) -> {
+        bind("missions", (SosApiModels.RescuerMissionsResponse response) -> {
             missions = response.getData() == null ? Collections.emptyList() : response.getData();
+            SosApiModels.MissionStatistics stats = response.getStatistics();
+            statisticsText.setText(stats == null ? getString(R.string.mission_statistics_error)
+                    : getString(R.string.mission_statistics_summary, stats.getCompletedCount(),
+                            String.format(Locale.getDefault(), "%.2f", stats.getTotalDistanceKm())));
             clearStatus();
             render();
-        }, error -> showApiError(error, this::refresh), busy -> {
+        }, error -> {
+            statisticsText.setText(R.string.mission_statistics_error);
+            showApiError(error, this::refresh);
+        }, busy -> {
             loadingMissions = busy;
-            if (busy) showLoading("Đang tải các ca của bạn…");
+            dateFromButton.setEnabled(!busy);
+            dateToButton.setEnabled(!busy);
+            allDatesButton.setEnabled(!busy);
+            if (busy) {
+                showLoading("Đang tải các ca của bạn…");
+                statisticsText.setText(R.string.mission_statistics_loading);
+            }
             render();
         });
         bind("logs", (SosApiModels.SosLogsResponse response) -> {
@@ -149,7 +191,45 @@ public class RescuerMissionsActivity extends ApiActivity {
     private void refresh() {
         execute("types", types::loadAll);
         execute("active", rescuer::loadMyActive);
-        execute("missions", rescuer::loadMyMissions);
+        loadMissions();
+    }
+
+    private void loadMissions() {
+        execute("missions", () -> rescuer.loadMyMissions(dateFrom, dateTo));
+    }
+
+    private void pickDate(boolean from) {
+        Calendar selected = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        String value = from ? dateFrom : dateTo;
+        if (value != null) {
+            String[] parts = value.split("-");
+            selected.set(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) - 1,
+                    Integer.parseInt(parts[2]));
+        }
+        new DatePickerDialog(this, (view, year, month, day) -> {
+            String picked = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day);
+            String start = from ? picked : dateFrom;
+            String end = from ? dateTo : picked;
+            if (start != null && end != null && start.compareTo(end) > 0) {
+                Toast.makeText(this, R.string.mission_date_range_invalid, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            dateFrom = start;
+            dateTo = end;
+            updateDateButtons();
+            loadMissions();
+        }, selected.get(Calendar.YEAR), selected.get(Calendar.MONTH),
+                selected.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void updateDateButtons() {
+        dateFromButton.setText(dateButtonText(R.string.mission_date_from, dateFrom));
+        dateToButton.setText(dateButtonText(R.string.mission_date_to, dateTo));
+    }
+
+    private String dateButtonText(int label, String date) {
+        return date == null ? getString(label) : getString(label) + "\n"
+                + date.substring(8, 10) + "/" + date.substring(5, 7) + "/" + date.substring(0, 4);
     }
 
     private void render() {
@@ -165,7 +245,10 @@ public class RescuerMissionsActivity extends ApiActivity {
             combined.add(item);
         }
         adapter.submitList(combined, activeId);
-        findViewById(R.id.tvMissionsEmpty).setVisibility(
+        TextView empty = findViewById(R.id.tvMissionsEmpty);
+        empty.setText(dateFrom != null || dateTo != null
+                ? getString(R.string.mission_date_range_empty) : "Chưa có ca cứu hộ nào.");
+        empty.setVisibility(
                 !loadingMissions && combined.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
@@ -285,6 +368,13 @@ public class RescuerMissionsActivity extends ApiActivity {
     private int dp(float value) {
         return Math.round(TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics()));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("mission_date_from", dateFrom);
+        outState.putString("mission_date_to", dateTo);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

@@ -17,11 +17,16 @@ public final class ScreenRequests extends ViewModel {
     public <T> LiveData<ApiState<T>> get(String key) {
         return (LiveData<ApiState<T>>) requests.get(key);
     }
+
     public <T> void put(String key, LiveData<ApiState<T>> request) {
         requests.put(key, request);
         consumed.remove(key);
     }
-    public boolean isConsumed(String key) { return consumed.contains(key); }
+
+    public boolean isConsumed(String key) {
+        return consumed.contains(key);
+    }
+
     public boolean consume(String key, LiveData<?> source) {
         return requests.get(key) == source && consumed.add(key);
     }

@@ -489,6 +489,24 @@ public final class SosApiModels {
         }
     }
 
+    public static class RescuerMissionsResponse extends RescuerQueueResponse {
+        @SerializedName("statistics")
+        private MissionStatistics statistics;
+
+        public MissionStatistics getStatistics() { return statistics; }
+    }
+
+    public static class MissionStatistics implements Serializable {
+        @SerializedName("completed_count")
+        private int completedCount;
+
+        @SerializedName("total_distance_km")
+        private double totalDistanceKm;
+
+        public int getCompletedCount() { return completedCount; }
+        public double getTotalDistanceKm() { return totalDistanceKm; }
+    }
+
     /**
      * Kết quả trả về từ API #18 ({@code POST /api/rescuer/sos/{id}/accept}).
      */
